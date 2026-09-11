@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { API_BASE_URL } from '../config';
 
 const EventControls = ({ onPlanUpdate }) => {
   const [loading, setLoading] = useState(false);
@@ -9,7 +10,7 @@ const EventControls = ({ onPlanUpdate }) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch('http://127.0.0.1:8000/plans/optimize', {
+      const res = await fetch(`${API_BASE_URL}/plans/optimize`, {
         method: 'POST',
       });
       if (!res.ok) {
@@ -28,7 +29,7 @@ const EventControls = ({ onPlanUpdate }) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch('http://127.0.0.1:8000/events/bridge-collapse', {
+      const res = await fetch(`${API_BASE_URL}/events/bridge-collapse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route_id: "R01" })
@@ -51,7 +52,7 @@ const EventControls = ({ onPlanUpdate }) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch('http://127.0.0.1:8000/events/capacity-drop', {
+      const res = await fetch(`${API_BASE_URL}/events/capacity-drop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site_id: "SHL-005", drop_percent: percent })

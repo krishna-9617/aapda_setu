@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MapView from '../components/MapView';
 import SolverStatusBadge from '../components/SolverStatusBadge';
 import EventControls from '../components/EventControls';
+import { API_BASE_URL } from '../config';
 
 // Tilt card component for 3D effect
 const TiltCard = ({ children, style, className }) => {
@@ -186,15 +187,15 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let planRes = await fetch('http://127.0.0.1:8000/plans/current');
+        let planRes = await fetch(`${API_BASE_URL}/plans/current`);
         if (!planRes.ok) {
-          planRes = await fetch('http://127.0.0.1:8000/plans/optimize', { method: 'POST' });
+          planRes = await fetch(`${API_BASE_URL}/plans/optimize`, { method: 'POST' });
         }
         
         const [habsRes, sitesRes, routesRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/habitations'),
-          fetch('http://127.0.0.1:8000/sites'),
-          fetch('http://127.0.0.1:8000/routes')
+          fetch(`${API_BASE_URL}/habitations`),
+          fetch(`${API_BASE_URL}/sites`),
+          fetch(`${API_BASE_URL}/routes`)
         ]);
         
         setCurrentPlan(await planRes.json());
@@ -221,9 +222,9 @@ const Dashboard = () => {
 
     try {
       const [planRes, sitesRes, routesRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/plans/current'),
-        fetch('http://127.0.0.1:8000/sites'),
-        fetch('http://127.0.0.1:8000/routes')
+        fetch(`${API_BASE_URL}/plans/current`),
+        fetch(`${API_BASE_URL}/sites`),
+        fetch(`${API_BASE_URL}/routes`)
       ]);
       setCurrentPlan(await planRes.json());
       setSites(await sitesRes.json());
