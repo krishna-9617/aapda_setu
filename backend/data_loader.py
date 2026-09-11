@@ -13,6 +13,17 @@ def load_data(data_dir):
     # Convert habitations to dictionary
     habitations = {}
     for _, row in habitations_df.iterrows():
+        flood_score = float(row.get('flood_score', row.get('hazard_score', 0)))
+        landslide_score = float(row.get('landslide_score', 0))
+        
+        # Determine dominant hazard
+        if landslide_score > flood_score:
+            dominant_hazard = "landslide"
+            hazard_score = landslide_score
+        else:
+            dominant_hazard = "flood"
+            hazard_score = flood_score
+            
         habitations[row['habitation_id']] = {
             'habitation_id': row['habitation_id'],
             'name': row['name'],
@@ -20,9 +31,13 @@ def load_data(data_dir):
             'lon': float(row['lon']),
             'population': int(row['population']),
             'vulnerability_score': float(row['vulnerability_score']),
-            'hazard_score': float(row['hazard_score']),
+            'flood_score': flood_score,
+            'landslide_score': landslide_score,
+            'hazard_score': hazard_score,
+            'dominant_hazard': dominant_hazard,
             'priority_score': float(row['priority_score']),
-            'red_zone_band': row['red_zone_band']
+            'red_zone_band': row['red_zone_band'],
+            'road_transit_fraction': float(row.get('road_transit_fraction', 0.7))
         }
 
     # Convert sites to dictionary
@@ -41,7 +56,9 @@ def load_data(data_dir):
             'capacity_road': int(row['capacity_road']),
             'safety_flag': bool(row['safety_flag']),
             'effective_capacity': int(row['effective_capacity']),
-            'status': row['status']
+            'status': row['status'],
+            'food_supply_units': int(row.get('food_supply_units', 0)),
+            'medical_supply_units': int(row.get('medical_supply_units', 0))
         }
 
     # Convert routes to dictionary

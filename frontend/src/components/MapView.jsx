@@ -69,9 +69,13 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
       ? `<div class="unmet-warning-ring"></div><div class="unmet-warning-icon">⚠</div>`
       : '';
 
+    const hazardIcon = hab.dominant_hazard === 'landslide' ? '⛰️' : '🌊';
+    const hazardOverlay = `<div class="hazard-overlay" style="position:absolute; top:-10px; right:-10px; font-size:14px; z-index:100; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.8));">${hazardIcon}</div>`;
+
     const html = `
-      <div class="hab-marker ${pulseClass}">
+      <div class="hab-marker ${pulseClass}" style="position:relative;">
         ${unmetIndicator}
+        ${hazardOverlay}
         <div class="ring" style="border: 3px solid ${color}; background-color: ${color}50; box-shadow: 0 0 12px ${color};"></div>
         <div class="dot" style="background-color: ${color}; box-shadow: 0 0 10px ${color}, 0 2px 6px rgba(0,0,0,0.8);"></div>
       </div>
@@ -180,7 +184,7 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
 
           return (
             <Polyline 
-              key={`line-${a.habitation_id}-${a.site_id}`}
+              key={`line-${a.habitation_id}-${a.site_id}-${a.route_id}`}
               positions={positions} 
               className="assignment-line"
               pathOptions={{ 

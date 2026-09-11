@@ -29,10 +29,10 @@ const EventControls = ({ onPlanUpdate }) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch(`${API_BASE_URL}/events/bridge-collapse`, {
+      const res = await fetch(`${API_BASE_URL}/field-reports/hazard-incident`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ route_id: "R01" })
+        body: JSON.stringify({ incident_type: "bridge_collapse", target_id: "R01", reported_by: "Field Officer - Sector 1" })
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -52,10 +52,10 @@ const EventControls = ({ onPlanUpdate }) => {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await fetch(`${API_BASE_URL}/events/capacity-drop`, {
+      const res = await fetch(`${API_BASE_URL}/field-reports/hazard-incident`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ site_id: "SHL-005", drop_percent: percent })
+        body: JSON.stringify({ incident_type: "capacity_drop", target_id: "SHL-005", drop_percent: percent, reported_by: "Field Officer - Sector 3" })
       });
       if (!res.ok) {
         const errData = await res.json();
@@ -86,7 +86,7 @@ const EventControls = ({ onPlanUpdate }) => {
       border: '1px solid rgba(255, 255, 255, 0.05)',
       marginTop: '20px'
     }}>
-      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Simulate Disruption</h4>
+      <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Field Incident Reporting</h4>
       
       {errorMsg && (
         <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', borderRadius: '8px', fontSize: '12px' }}>
@@ -115,11 +115,11 @@ const EventControls = ({ onPlanUpdate }) => {
         onClick={handleBridgeCollapse}
         style={{ ...buttonBaseStyle, marginBottom: '10px', backgroundColor: 'var(--btn-bg)', border: '1px solid var(--panel-border-light)', color: 'var(--text-strong)' }}
       >
-        {loading ? 'Simulating...' : 'Simulate Bridge Collapse (R01)'}
+        {loading ? 'Reporting...' : 'Report: Bridge Collapse (R01)'}
       </motion.button>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <h5 style={{ margin: '4px 0 2px 0', color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>Capacity Drop (SHL-005)</h5>
+        <h5 style={{ margin: '4px 0 2px 0', color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>Report: Capacity Drop (SHL-005)</h5>
         <div style={{ display: 'flex', gap: '6px' }}>
           <motion.button 
             whileHover={{ scale: loading ? 1 : 1.02 }}

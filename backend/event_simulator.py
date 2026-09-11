@@ -39,36 +39,42 @@ def compare_plans(old_plan, new_plan):
         old_list = old_hab_map.get(hab, [])
         new_list = new_hab_map.get(hab, [])
         
-        # Compare counts per site
+        # Compare counts per site and route
         old_sites = {}
         for a in old_list:
-            old_sites[a['site_id']] = old_sites.get(a['site_id'], 0) + a['people_count']
+            key = (a['site_id'], a['route_id'])
+            old_sites[key] = old_sites.get(key, 0) + a['people_count']
             
         new_sites = {}
         for a in new_list:
-            new_sites[a['site_id']] = new_sites.get(a['site_id'], 0) + a['people_count']
+            key = (a['site_id'], a['route_id'])
+            new_sites[key] = new_sites.get(key, 0) + a['people_count']
             
         if old_sites != new_sites:
             changes = True
             print(f"Habitation {hab} changed assignments:")
-            for site, count in old_sites.items():
-                new_c = new_sites.get(site, 0)
+            for key, count in old_sites.items():
+                site, route = key
+                new_c = new_sites.get(key, 0)
                 if count > new_c:
-                    print(f"  - {count - new_c} people REMOVED from old assignment Site {site}")
+                    print(f"  - {count - new_c} people REMOVED from old assignment Site {site} via Route {route}")
                     changes_list.append({
                         "type": "REMOVED",
                         "habitation_id": hab,
                         "site_id": site,
+                        "route_id": route,
                         "people_count": count - new_c
                     })
-            for site, count in new_sites.items():
-                old_c = old_sites.get(site, 0)
+            for key, count in new_sites.items():
+                site, route = key
+                old_c = old_sites.get(key, 0)
                 if count > old_c:
-                    print(f"  + {count - old_c} people ADDED to new assignment Site {site}")
+                    print(f"  + {count - old_c} people ADDED to new assignment Site {site} via Route {route}")
                     changes_list.append({
                         "type": "ADDED",
                         "habitation_id": hab,
                         "site_id": site,
+                        "route_id": route,
                         "people_count": count - old_c
                     })
 

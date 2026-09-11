@@ -38,11 +38,19 @@ def greedy_fallback(habitations, sites, routes):
                             best_time = r['travel_time_min']
                             best_route = k
                 
+                import math
+                road_frac = habitations[i].get("road_transit_fraction", 0.7)
+                water_frac = 1.0 - road_frac
+                buses = math.ceil((take * road_frac) / 40.0)
+                boats = math.ceil((take * water_frac) / 15.0)
+
                 assignments.append({
                     "habitation_id": i, 
                     "site_id": j, 
                     "route_id": best_route,
-                    "people_count": take
+                    "people_count": take,
+                    "buses_required": buses,
+                    "boats_required": boats
                 })
                 remaining_capacity[j] -= take
                 pop_left -= take
@@ -80,6 +88,20 @@ def build_and_solve(habitations, sites, routes):
             <= sites[j]["effective_capacity"]
         )
 
+    # New constraints: Resource tracking for food and medical
+    FOOD_PER_PERSON = 3
+    MEDICAL_RATIO = 20
+    for j in sites:
+        model.Add(
+            sum(x[i, j, k] * FOOD_PER_PERSON for i in habitations for k in routes_between(i, j, routes))
+            <= sites[j].get("food_supply_units", 0)
+        )
+        model.Add(
+            sum(x[i, j, k] for i in habitations for k in routes_between(i, j, routes))
+            <= sites[j].get("medical_supply_units", 0) * MEDICAL_RATIO
+        )
+
+
     # Hard constraint: closed routes carry zero flow
     for (i, j, k), var in x.items():
         if routes[k]["status"] == "closed":
@@ -115,11 +137,19 @@ def build_and_solve(habitations, sites, routes):
         for (i, j, k), var in x.items():
             val = solver.Value(var)
             if val > 0:
+                import math
+                road_frac = habitations[i].get("road_transit_fraction", 0.7)
+                water_frac = 1.0 - road_frac
+                buses = math.ceil((val * road_frac) / 40.0)
+                boats = math.ceil((val * water_frac) / 15.0)
+
                 result["assignments"].append({
                     "habitation_id": i, 
                     "site_id": j, 
                     "route_id": k,
                     "people_count": val,
+                    "buses_required": buses,
+                    "boats_required": boats
                 })
                 
         result["unmet_demand"] = {}
