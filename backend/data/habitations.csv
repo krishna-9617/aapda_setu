@@ -1,0 +1,6 @@
+habitation_id,name,lat,lon,population,vulnerability_score,hazard_score,priority_score,red_zone_band
+BRP-001,Barpeta Ward 1,26.32,91.00,1200,0.8,0.9,0.85,critical
+BRP-002,Barpeta Ward 2,26.33,91.01,800,0.6,0.7,0.65,high
+BRP-003,Barpeta Ward 3,26.31,91.02,2500,0.9,0.8,0.85,critical
+BRP-004,Barpeta Ward 4,26.34,90.99,1500,0.4,0.5,0.45,moderate
+BRP-005,Barpeta Ward 5,26.30,90.98,600,0.2,0.3,0.25,low

@@ -1,0 +1,9 @@
+route_id,from_habitation_id,to_site_id,distance_km,travel_time_min,risk_score,status,capacity_per_hour
+R01,BRP-001,SHL-001,1.5,5.0,0.2,open,500
+R02,BRP-001,SHL-002,2.0,8.0,0.3,open,400
+R03,BRP-002,SHL-001,1.8,6.0,0.2,open,450
+R04,BRP-003,SHL-002,1.2,4.0,0.1,open,600
+R05,BRP-003,SHL-005,3.0,12.0,0.4,open,300
+R06,BRP-004,SHL-003,1.0,3.0,0.1,open,500
+R07,BRP-004,SHL-004,2.5,10.0,0.3,open,350
+R08,BRP-005,SHL-005,1.5,5.0,0.2,open,550
