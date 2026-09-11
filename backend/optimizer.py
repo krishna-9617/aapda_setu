@@ -22,13 +22,20 @@ def greedy_fallback(habitations, sites, routes):
     # Sort habitations by priority desc
     for i in sorted(habitations, key=lambda h: -habitations[h]["priority_score"]):
         pop_left = habitations[i]["population"]
+        crit = habitations[i].get("critical_care_population", 0)
+        max_non_health = habitations[i]["population"] - crit
+        non_health_assigned = 0
         candidate_sites = sorted(
             (j for j in sites if remaining_capacity[j] > 0 and route_open(i, j, routes)),
             key=lambda j: travel_time(i, j, routes)
         )
         for j in candidate_sites:
             take = min(pop_left, remaining_capacity[j])
+            if not sites[j].get("has_healthcare", True):
+                take = min(take, max_non_health - non_health_assigned)
             if take > 0:
+                if not sites[j].get("has_healthcare", True):
+                    non_health_assigned += take
                 # Find best route
                 best_route = None
                 best_time = float('inf')
@@ -101,6 +108,16 @@ def build_and_solve(habitations, sites, routes):
             <= sites[j].get("medical_supply_units", 0) * MEDICAL_RATIO
         )
 
+    # Hard constraint: Critical care population cannot be sent to sites without healthcare
+    for i in habitations:
+        crit = habitations[i].get("critical_care_population", 0)
+        if crit > 0:
+            non_health_sum = sum(
+                x[i, j, k]
+                for j in sites if not sites[j].get("has_healthcare", True)
+                for k in routes_between(i, j, routes)
+            )
+            model.Add(non_health_sum <= habitations[i]["population"] - crit)
 
     # Hard constraint: closed routes carry zero flow
     for (i, j, k), var in x.items():

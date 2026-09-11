@@ -1,6 +1,6 @@
-site_id,name,lat,lon,capacity_space,capacity_water,capacity_sanitation,capacity_health,capacity_food,capacity_road,safety_flag,effective_capacity,food_supply_units,medical_supply_units,status,data_source,notes
-SHL-001,Barpeta Vidyapith,26.321,91.005,5000,2400,1800,1500,2100,2000,True,1500,5000,100,active,estimated,"Real institution name, coords approximate. Capacities estimated."
-SHL-002,Madhab Choudhury College,26.325,91.01,3000,3000,2500,4000,2000,1500,True,1500,5000,100,active,estimated,"Real institution name, coords approximate. Capacities estimated."
-SHL-003,Tarun Ram Phookan High School,26.315,91.0,2000,1500,1000,1200,1800,1000,True,1000,2000,50,active,estimated,"Real institution name, coords approximate. Capacities estimated."
-SHL-004,Barpeta Girls High School,26.33,90.99,1500,1000,800,900,1200,800,True,800,3000,50,active,estimated,"Real institution name, coords approximate. Capacities estimated."
-SHL-005,J.R.P. Female Seminary,26.31,91.015,8000,5000,4000,3000,6000,5000,True,3000,10000,200,active,estimated,"Real institution name, coords approximate. Capacities estimated."
+site_id,name,lat,lon,capacity_space,capacity_water,capacity_sanitation,capacity_health,capacity_food,capacity_road,safety_flag,effective_capacity,food_supply_units,medical_supply_units,has_healthcare,status,data_source,notes
+SHL-001,Barpeta Vidyapith,26.321,91.005,5000,2400,1800,1500,2100,2000,True,1500,5000,100,True,active,estimated,"Real institution name, coords approximate. Capacities estimated."
+SHL-002,Madhab Choudhury College,26.325,91.01,3000,3000,2500,4000,2000,1500,True,1500,5000,100,True,active,estimated,"Real institution name, coords approximate. Capacities estimated."
+SHL-003,Tarun Ram Phookan High School,26.315,91.0,2000,1500,1000,1200,1800,1000,True,1000,2000,50,False,active,estimated,"Real institution name, coords approximate. Capacities estimated."
+SHL-004,Barpeta Girls High School,26.33,90.99,1500,1000,800,900,1200,800,True,800,3000,50,False,active,estimated,"Real institution name, coords approximate. Capacities estimated."
+SHL-005,J.R.P. Female Seminary,26.31,91.015,8000,5000,4000,3000,6000,5000,True,3000,10000,200,True,active,estimated,"Real institution name, coords approximate. Capacities estimated."

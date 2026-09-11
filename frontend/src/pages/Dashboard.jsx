@@ -116,6 +116,16 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
           </div>
         </div>
 
+        {hab.critical_care_population > 0 && (
+          <div style={{ marginBottom: '24px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>🏥</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#f87171', fontWeight: 600, letterSpacing: '0.5px' }}>Critical Care Population</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#fca5a5' }}>{hab.critical_care_population} people (bedridden / oxygen / maternal)</span>
+            </div>
+          </div>
+        )}
+
         <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-strong)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }}></span>
           Current Assignment
@@ -131,6 +141,12 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
               <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Site:</span>
               <strong style={{ color: 'var(--text-light)', fontSize: '13px' }}>{sites[assignment.site_id]?.name || assignment.site_id}</strong>
             </div>
+            {hab.critical_care_population > 0 && sites[assignment.site_id]?.has_healthcare && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '12px' }}>✅</span>
+                <span style={{ color: '#34d399', fontSize: '12px', fontWeight: 600 }}>Assigned to healthcare-capable shelter</span>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Route:</span>
               <strong style={{ color: 'var(--text-light)', fontSize: '13px' }}>{assignment.route_id}</strong>

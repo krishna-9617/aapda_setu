@@ -1,6 +1,6 @@
-habitation_id,name,lat,lon,population,vulnerability_score,flood_score,landslide_score,hazard_score,dominant_hazard,priority_score,red_zone_band,road_transit_fraction,data_source,notes
-BRP-001,Ambari,26.328,91.008,1200,0.8,0.9,0.2,0.9,flood,0.85,critical,0.8,estimated,Manually jittered fallback coords. Population/scores estimated.
-BRP-002,Howly,26.4249628,90.9712027,800,0.6,0.3,0.7,0.7,landslide,0.65,high,0.5,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
-BRP-003,Fulkipara,26.312,91.021,2500,0.9,0.8,0.1,0.8,flood,0.85,critical,0.9,estimated,Manually jittered fallback coords. Population/scores estimated.
-BRP-004,Baghbar,26.2174401,90.8494019,1500,0.4,0.2,0.6,0.6,landslide,0.5,moderate,0.4,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
-BRP-005,Kalgachia,26.3124972,90.8269282,600,0.2,0.3,0.0,0.3,flood,0.25,low,0.7,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
+habitation_id,name,lat,lon,population,critical_care_population,vulnerability_score,flood_score,landslide_score,hazard_score,dominant_hazard,priority_score,red_zone_band,road_transit_fraction,data_source,notes
+BRP-001,Ambari,26.328,91.008,1200,120,0.8,0.9,0.2,0.9,flood,0.85,critical,0.8,estimated,Manually jittered fallback coords. Population/scores estimated.
+BRP-002,Howly,26.4249628,90.9712027,800,80,0.6,0.3,0.7,0.7,landslide,0.65,high,0.5,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
+BRP-003,Fulkipara,26.312,91.021,2500,250,0.9,0.8,0.1,0.8,flood,0.85,critical,0.9,estimated,Manually jittered fallback coords. Population/scores estimated.
+BRP-004,Baghbar,26.2174401,90.8494019,1500,150,0.4,0.2,0.6,0.6,landslide,0.5,moderate,0.4,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
+BRP-005,Kalgachia,26.3124972,90.8269282,600,60,0.2,0.3,0.0,0.3,flood,0.25,low,0.7,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
