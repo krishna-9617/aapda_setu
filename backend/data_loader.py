@@ -56,6 +56,8 @@ def load_data(data_dir):
             'capacity_food': int(row['capacity_food']),
             'capacity_road': int(row['capacity_road']),
             'safety_flag': bool(row['safety_flag']),
+            'hazard_score': float(row.get('hazard_score', 0.1)),
+            'terrain_safe': str(row.get('terrain_safe', 'True')).lower() == 'true',
             'has_healthcare': str(row.get('has_healthcare', 'True')).lower() == 'true',
             'effective_capacity': int(row['effective_capacity']),
             'status': row['status'],

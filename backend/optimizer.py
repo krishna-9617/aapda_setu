@@ -65,11 +65,72 @@ def greedy_fallback(habitations, sites, routes):
                 break
     return {"status": "HEURISTIC", "assignments": assignments}
 
+def naive_nearest_site(habitations, sites, routes):
+    assignments = []
+    site_assigned = {s: 0 for s in sites}
+    
+    for i, hab in habitations.items():
+        best_site = None
+        best_route = None
+        min_time = float('inf')
+        
+        for k, r in routes.items():
+            if r['from_habitation_id'] == i and r['status'] == 'open':
+                if r['travel_time_min'] < min_time:
+                    min_time = r['travel_time_min']
+                    best_site = r['to_site_id']
+                    best_route = k
+                    
+        if best_site:
+            pop = hab['population']
+            assignments.append({
+                'habitation_id': i,
+                'site_id': best_site,
+                'route_id': best_route,
+                'people_count': pop,
+                'travel_time_min': min_time,
+                'risk_score': routes[best_route]['risk_score']
+            })
+            site_assigned[best_site] += pop
+            
+    over_capacity_count = 0
+    unmet_demand = 0
+    for s, count in site_assigned.items():
+        cap = sites[s]['effective_capacity']
+        if count > cap:
+            over_capacity_count += 1
+            unmet_demand += (count - cap)
+            
+    avg_travel_time = sum(a['travel_time_min'] for a in assignments) / len(assignments) if assignments else 0
+    avg_risk = sum(a['risk_score'] for a in assignments) / len(assignments) if assignments else 0
+    
+    return {
+        'unmet_demand': unmet_demand,
+        'avg_travel_time': avg_travel_time,
+        'avg_risk': avg_risk,
+        'over_capacity_count': over_capacity_count,
+        'assignments': assignments
+    }
+
+from site_filtering import filter_candidate_sites
+
 def build_and_solve(habitations, sites, routes):
     model = cp_model.CpModel()
+    
+    # Pre-filter candidate sites for each habitation
+    candidate_sites_for_hab = {}
+    filtering_reasons = {}
+    for i in habitations:
+        candidates, exclusions = filter_candidate_sites(i, habitations, sites, routes)
+        candidate_sites_for_hab[i] = candidates
+        filtering_reasons[i] = exclusions
 
     def routes_between(i, j, routes):
-        return [k for k, r in routes.items() if r['from_habitation_id'] == i and r['to_site_id'] == j]
+        # Stage 1-4 checks: if site j was filtered out for habitation i, return no routes
+        if j not in candidate_sites_for_hab.get(i, []):
+            return []
+        # Return open routes
+        return [k for k, r in routes.items() if r['from_habitation_id'] == i and r['to_site_id'] == j and r.get('status', 'open') == 'open']
 
     # Decision variables: x[i][j][k] = people from habitation i to site j via route k
     x = {}
@@ -150,7 +211,15 @@ def build_and_solve(habitations, sites, routes):
     }
 
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        result["objective"] = solver.ObjectiveValue() / 100.0  # Optional: scale back
+        obj_val = solver.ObjectiveValue() / 100.0
+        best_bound = solver.BestObjectiveBound() / 100.0
+        gap = 0.0
+        if obj_val != 0:
+            gap = abs(obj_val - best_bound) / abs(obj_val) * 100.0
+            
+        result["objective"] = obj_val
+        result["gap"] = gap
+        
         for (i, j, k), var in x.items():
             val = solver.Value(var)
             if val > 0:
@@ -180,6 +249,7 @@ def build_and_solve(habitations, sites, routes):
         result["status"] = "HEURISTIC FALLBACK"
         result["assignments"] = fallback_res["assignments"]
 
+    result["filtering_reasons"] = filtering_reasons
     return result
 
 if __name__ == "__main__":

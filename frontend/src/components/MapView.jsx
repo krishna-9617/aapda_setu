@@ -66,7 +66,7 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
     
     const unmet = currentPlan?.unmet_demand?.[hab.habitation_id] || 0;
     const unmetIndicator = unmet > 0 
-      ? `<div class="unmet-warning-ring"></div><div class="unmet-warning-icon">⚠</div>`
+      ? `<div class="unmet-warning-ring"></div><div class="unmet-warning-icon">⚠️</div>`
       : '';
 
     const hazardIcon = hab.dominant_hazard === 'landslide' ? '⛰️' : '🌊';
@@ -127,8 +127,8 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
       </svg>
 
       <MapContainer 
-        center={[26.32, 91.0]} 
-        zoom={13} 
+        center={[26.32, 90.95]} 
+        zoom={11} 
         style={{ width: '100%', height: '100%', zIndex: 0 }}
       >
         <TileLayer
@@ -140,10 +140,13 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
         {/* Sites */}
         {Object.values(sites).map(site => (
           <Marker 
-            key={site.name} 
+            key={site.site_id} 
             position={[site.lat, site.lon]}
             icon={createSiteIcon()}
           >
+            <Tooltip permanent direction="bottom" offset={[0, 12]} className="map-id-label site-label">
+              {site.site_id}
+            </Tooltip>
             <Popup>
               <div style={{ fontFamily: 'sans-serif', color: 'black' }}>
                 <strong style={{ display: 'block', marginBottom: '4px' }}>{site.name}</strong>
@@ -160,7 +163,11 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
             position={[hab.lat, hab.lon]}
             icon={createHabIconWithUnmet(hab)}
             eventHandlers={{ click: () => onHabClick(hab.habitation_id) }}
-          />
+          >
+            <Tooltip permanent direction="top" offset={[0, -15]} className="map-id-label hab-label">
+              {hab.habitation_id}
+            </Tooltip>
+          </Marker>
         ))}
 
         {/* Assignment Lines */}
@@ -174,6 +181,9 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
             [hab.lat, hab.lon],
             [site.lat, site.lon]
           ];
+          
+          const midLat = (hab.lat + site.lat) / 2;
+          const midLon = (hab.lon + site.lon) / 2;
 
           // Bucket line thickness based on people count
           let weight = 2; // < 500
@@ -183,23 +193,33 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
           const route = routesData && routesData[a.route_id];
 
           return (
-            <Polyline 
-              key={`line-${a.habitation_id}-${a.site_id}-${a.route_id}`}
-              positions={positions} 
-              className="assignment-line"
-              pathOptions={{ 
-                color: `url(#${getGradientId(hab.red_zone_band)})`, 
-                weight: weight, 
-                dashArray: '10, 10' 
-              }} 
-            >
-              <Tooltip sticky>
-                <div style={{ fontFamily: 'Inter, sans-serif' }}>
-                  <strong>{a.people_count} people</strong> → {site.name}
-                  {route && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{route.travel_time_min} mins travel time</div>}
-                </div>
-              </Tooltip>
-            </Polyline>
+            <React.Fragment key={`frag-${a.habitation_id}-${a.site_id}-${a.route_id}`}>
+              <Polyline 
+                positions={positions} 
+                className="assignment-line"
+                pathOptions={{ 
+                  color: `url(#${getGradientId(hab.red_zone_band)})`, 
+                  weight: weight, 
+                  dashArray: '10, 10' 
+                }} 
+              >
+                <Tooltip sticky>
+                  <div style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <strong>{a.people_count} people</strong> -{'>'} {site.name}
+                    {route && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{route.travel_time_min} mins travel time</div>}
+                  </div>
+                </Tooltip>
+              </Polyline>
+              <Marker 
+                position={[midLat, midLon]}
+                icon={L.divIcon({
+                  className: 'transparent-leaflet-icon',
+                  html: `<div class="route-chip-icon">${a.route_id}</div>`,
+                  iconSize: [30, 14],
+                  iconAnchor: [15, 7]
+                })}
+              />
+            </React.Fragment>
           );
         })}
       </MapContainer>

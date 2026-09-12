@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MapView from '../components/MapView';
 import SolverStatusBadge from '../components/SolverStatusBadge';
 import EventControls from '../components/EventControls';
+import PlanHealthPanel from '../components/PlanHealthPanel';
 import { API_BASE_URL } from '../config';
 
 // Tilt card component for 3D effect
@@ -89,6 +90,11 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
         >×</button>
         <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--text-light)', paddingRight: '20px' }}>{hab.name}</h3>
         <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>Habitation Details</p>
+        {hab.data_source && (
+          <div style={{ marginTop: '8px', display: 'inline-block', backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Source: {hab.data_source === 'estimated' ? 'DEMO / ESTIMATED' : hab.data_source}
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '24px', flex: 1 }}>
@@ -108,6 +114,12 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
           </div>
         </div>
 
+        {hab.classification_stability !== undefined && (
+          <div style={{ marginBottom: '16px', fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center' }}>
+            Classification stable in {(hab.classification_stability * 100).toFixed(1)}% of weight-perturbation runs.
+          </div>
+        )}
+
         <div style={{ marginBottom: '24px', padding: '12px', backgroundColor: 'var(--inner-bg)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '16px' }}>{hab.dominant_hazard === 'landslide' ? '⛰️' : '🌊'}</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -122,6 +134,22 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#f87171', fontWeight: 600, letterSpacing: '0.5px' }}>Critical Care Population</span>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#fca5a5' }}>{hab.critical_care_population} people (bedridden / oxygen / maternal)</span>
+            </div>
+          </div>
+        )}
+
+        {currentPlan?.filtering_reasons && currentPlan.filtering_reasons[habitationId] && currentPlan.filtering_reasons[habitationId].length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-strong)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f59e0b', boxShadow: '0 0 8px #f59e0b' }}></span>
+              Filtered Candidate Sites
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {currentPlan.filtering_reasons[habitationId].map((reason, idx) => (
+                <div key={idx} style={{ padding: '8px 12px', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.2)', fontSize: '12px', color: 'var(--text-light)', lineHeight: '1.4' }}>
+                  {reason}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -297,7 +325,7 @@ const WhatIfControls = ({ currentPlan }) => {
           </div>
 
           <div style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
-            Simulation only — not applied to live plan
+            Simulation only - not applied to live plan
           </div>
         </div>
       )}
@@ -384,12 +412,21 @@ const Dashboard = () => {
       const summaryData = { ...pendingPlanData };
       setPendingPlanData(null);
       
+      // Fetch mock alerts
+      try {
+        const alertsRes = await fetch(`${API_BASE_URL}/alerts/sent`);
+        const alertsData = await alertsRes.json();
+        summaryData.alerts = alertsData.alerts;
+      } catch (err) {
+        console.error("Failed to fetch alerts", err);
+      }
+      
       // Update UI map
       await fetchCurrentData();
       
       // Show success toast
       setEventSummary(summaryData);
-      setTimeout(() => setEventSummary(null), 8000);
+      setTimeout(() => setEventSummary(null), 12000);
     } catch (e) {
       console.error("Failed to approve plan", e);
     }
@@ -409,7 +446,8 @@ const Dashboard = () => {
     }
   };
 
-  const sortedHabs = Object.values(habitations).sort((a, b) => b.priority_score - a.priority_score);
+  const displayHabs = pendingPlanData?.pending_data?.habitations || habitations;
+  const sortedHabs = Object.values(displayHabs).sort((a, b) => b.priority_score - a.priority_score);
 
   const exportAuditLog = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLog, null, 2));
@@ -423,6 +461,11 @@ const Dashboard = () => {
 
   return (
     <div className={theme === 'dark' ? 'theme-dark' : 'theme-light'} style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)', backgroundImage: 'var(--bg-grad)', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* DEMO MODE BANNER */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '24px', backgroundColor: 'rgba(245, 158, 11, 0.15)', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, color: '#f59e0b', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
+        Demo mode: events and some data are simulated for illustration.
+      </div>
       
       {/* BACKGROUND MAP LAYER */}
       <div style={{ 
@@ -444,7 +487,7 @@ const Dashboard = () => {
           backgroundColor: 'var(--bg)'
         }}>
           <MapView 
-            habitations={habitations} 
+            habitations={displayHabs} 
             sites={sites} 
             currentPlan={currentPlan} 
             routesData={routesData}
@@ -502,7 +545,16 @@ const Dashboard = () => {
               <TiltCard className="sidebar-container" style={{ width: '380px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <div style={{ position: 'relative', padding: '24px 24px 24px 72px', borderBottom: '1px solid var(--panel-border-light)', background: 'linear-gradient(to right, rgba(56, 189, 248, 0.1), transparent)' }}>
                   <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '-0.5px' }}>Aapda Setu</h2>
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Barpeta Dashboard</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Barpeta Dashboard</span>
+                    <div 
+                      title="Hazard layers, road network, and shelter data are cached locally - the decision engine doesn't require live internet to compute plans."
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '2px 6px', borderRadius: '4px', cursor: 'help' }}
+                    >
+                      <span style={{ fontSize: '8px' }}>🟢</span>
+                      <span style={{ fontSize: '9px', color: '#10b981', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Offline-ready</span>
+                    </div>
+                  </div>
                   
                   {/* THEME TOGGLE BUTTON */}
                   <button 
@@ -542,6 +594,7 @@ const Dashboard = () => {
                   >
                     {sortedHabs.map(hab => {
                       const isSelected = selectedHab === hab.habitation_id;
+                      const hasChanged = pendingPlanData && hab.red_zone_band !== habitations[hab.habitation_id]?.red_zone_band;
                       const bandColor = hab.red_zone_band === 'critical' ? '#ef4444' : 
                                         hab.red_zone_band === 'high' ? '#f97316' :
                                         hab.red_zone_band === 'moderate' ? '#f59e0b' : '#10b981';
@@ -552,6 +605,11 @@ const Dashboard = () => {
                             hidden: { opacity: 0, y: 10 },
                             visible: { opacity: 1, y: 0 }
                           }}
+                          animate={hasChanged ? { 
+                            boxShadow: ['0 0 0px rgba(0,0,0,0)', `0 0 20px ${bandColor}`, '0 0 0px rgba(0,0,0,0)'],
+                            borderColor: ['var(--item-border)', bandColor, 'var(--item-border)']
+                          } : "visible"}
+                          transition={hasChanged ? { duration: 1.5, repeat: 3 } : {}}
                           whileHover={{ y: -2, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)' }}
                           onClick={() => setSelectedHab(hab.habitation_id)}
                           style={{
@@ -602,7 +660,13 @@ const Dashboard = () => {
                     })}
                   </motion.div>
 
-                  <EventControls onPlanUpdate={handlePlanUpdate} />
+                  <PlanHealthPanel currentPlan={currentPlan} onPlanUpdate={handlePlanUpdate} />
+                  <EventControls 
+                    onPlanUpdate={handlePlanUpdate} 
+                    sites={sites} 
+                    habitations={habitations} 
+                    routesData={routesData} 
+                  />
                   <WhatIfControls currentPlan={currentPlan} />
                   <Legend />
 
@@ -693,7 +757,21 @@ const Dashboard = () => {
                   <h4 style={{ margin: 0, color: '#f59e0b', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>⚠</span> Proposed Plan Change
                   </h4>
+                  <div style={{ backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Source: DEMO EVENT SIMULATOR
+                  </div>
                 </div>
+                
+                {pendingPlanData.invalidation_reason && (
+                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>⚠️</span> Plan Invalidated
+                    </div>
+                    <div style={{ color: 'var(--text-strong)', fontSize: '13px', lineHeight: '1.4' }}>
+                      {pendingPlanData.invalidation_reason}
+                    </div>
+                  </div>
+                )}
                 
                 <div style={{ fontSize: '14px', color: 'var(--text-strong)' }}>
                   This event triggers a re-optimization affecting <strong>{pendingPlanData.changed_assignments} habitations</strong>.
@@ -702,7 +780,7 @@ const Dashboard = () => {
                 <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                   Objective impact: <br/>
                   <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>{pendingPlanData.old_objective?.toFixed(1) || 'N/A'}</span> 
-                  {' '}→{' '}
+                  {' '} -{'>'} {' '}
                   <span style={{ color: '#10b981', fontWeight: 'bold' }}>{pendingPlanData.new_objective?.toFixed(1) || 'N/A'}</span>
                 </div>
 
@@ -750,7 +828,7 @@ const Dashboard = () => {
                   fontWeight: 500
                 }}
               >
-                Plan rejected — keeping current assignments
+                Plan rejected - keeping current assignments
               </motion.div>
             )}
           </AnimatePresence>
@@ -798,9 +876,31 @@ const Dashboard = () => {
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   Objective changed: <br/>
                   <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>{eventSummary.old_objective?.toFixed(1) || 'N/A'}</span> 
-                  {' '}→{' '}
+                  {' '} -{'>'} {' '}
                   <span style={{ color: '#10b981', fontWeight: 'bold' }}>{eventSummary.new_objective?.toFixed(1) || 'N/A'}</span>
                 </div>
+
+                {eventSummary.alerts && eventSummary.alerts.length > 0 && (
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '16px' }}>📱</span> SMS Alerts Dispatched
+                      <span style={{ fontSize: '9px', backgroundColor: 'rgba(56, 189, 248, 0.2)', padding: '2px 6px', borderRadius: '4px', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Simulated</span>
+                    </h4>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                      {eventSummary.alerts.slice(0, 3).map((alert, idx) => (
+                        <div key={idx} style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '6px', fontSize: '11px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>To: {alert.to}</div>
+                          <div style={{ color: 'var(--text-light)', lineHeight: 1.4 }}>"{alert.message}"</div>
+                        </div>
+                      ))}
+                      {eventSummary.alerts.length > 3 && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic', marginTop: '4px' }}>
+                          + {eventSummary.alerts.length - 3} more messages sent
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -911,7 +1011,7 @@ const Dashboard = () => {
               <TiltCard className="explainability-panel" style={{ width: '340px', height: '100%', overflow: 'hidden' }}>
                 <ExplainabilityPanelContent 
                   habitationId={selectedHab} 
-                  habitations={habitations} 
+                  habitations={displayHabs} 
                   sites={sites} 
                   currentPlan={currentPlan} 
                   routesData={routesData}

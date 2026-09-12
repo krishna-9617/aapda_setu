@@ -30,6 +30,17 @@ function AnimatedValue({ value, decimals = 0, prefix = "", suffix = "" }) {
 
 const SolverStatusBadge = ({ plan }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [comparisonData, setComparisonData] = useState(null);
+
+  useEffect(() => {
+    if (showTooltip && !comparisonData) {
+      fetch('http://127.0.0.1:8000/plans/comparison')
+        .then(res => res.json())
+        .then(data => setComparisonData(data))
+        .catch(err => console.error("Failed to fetch comparison", err));
+    }
+  }, [showTooltip, comparisonData]);
+
   if (!plan) return null;
 
   const isOptimal = plan.solver_status === 'OPTIMAL';
@@ -77,23 +88,59 @@ const SolverStatusBadge = ({ plan }) => {
                   exit={{ opacity: 0, y: 5 }}
                   transition={{ duration: 0.15 }}
                   style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', right: '-4px', width: '280px',
+                    position: 'absolute', top: 'calc(100% + 8px)', right: '-4px', width: '380px',
                     backgroundColor: 'var(--bg)', backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '14px',
+                    border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '16px',
                     boxShadow: '0 12px 40px rgba(0,0,0,0.4)', zIndex: 3000,
                     color: 'var(--text-strong)', fontSize: '12px', lineHeight: 1.5, textTransform: 'none',
                     fontWeight: 500
                   }}
                 >
-                  {/* Arrow pointer */}
                   <div style={{
                     position: 'absolute', top: '-5px', right: '8px', width: '10px', height: '10px',
                     backgroundColor: 'var(--bg)', borderTop: '1px solid var(--panel-border)', borderLeft: '1px solid var(--panel-border)',
                     transform: 'rotate(45deg)'
                   }}></div>
                   <div style={{ position: 'relative', zIndex: 1 }}>
-                    This uses Google OR-Tools CP-SAT, a constraint optimization solver. It finds the assignment of habitations to shelters that minimizes total travel time, risk, and unmet demand — while respecting hard capacity constraints. If no optimal solution exists, it falls back to a greedy heuristic algorithm.
+                    <p style={{ margin: '0 0 12px 0' }}>This uses Google OR-Tools CP-SAT, a constraint optimization solver. It finds the assignment of habitations to shelters that minimizes total travel time, risk, and unmet demand - while respecting hard capacity constraints.</p>
+                    
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#38bdf8' }}>Why CP-SAT?</h4>
+                    {comparisonData ? (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--panel-border-light)' }}>
+                            <th style={{ padding: '6px 4px', color: 'var(--text-muted)', fontWeight: 600 }}>Metric</th>
+                            <th style={{ padding: '6px 4px', color: 'var(--text-muted)', fontWeight: 600 }}>Naive Nearest</th>
+                            <th style={{ padding: '6px 4px', color: '#10b981', fontWeight: 600 }}>Aapda Setu (CP-SAT)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                            <td style={{ padding: '6px 4px' }}>Unmet Population</td>
+                            <td style={{ padding: '6px 4px', color: '#ef4444' }}>{comparisonData.naive.unmet_demand}</td>
+                            <td style={{ padding: '6px 4px', color: '#10b981', fontWeight: 'bold' }}>{comparisonData.cpsat.unmet_demand}</td>
+                          </tr>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                            <td style={{ padding: '6px 4px' }}>Sites Over Capacity</td>
+                            <td style={{ padding: '6px 4px', color: '#ef4444' }}>{comparisonData.naive.over_capacity_count}</td>
+                            <td style={{ padding: '6px 4px', color: '#10b981', fontWeight: 'bold' }}>{comparisonData.cpsat.over_capacity_count}</td>
+                          </tr>
+                          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                            <td style={{ padding: '6px 4px' }}>Avg Travel Time</td>
+                            <td style={{ padding: '6px 4px' }}>{comparisonData.naive.avg_travel_time.toFixed(1)}m</td>
+                            <td style={{ padding: '6px 4px' }}>{comparisonData.cpsat.avg_travel_time.toFixed(1)}m</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px 4px' }}>Avg Route Risk</td>
+                            <td style={{ padding: '6px 4px' }}>{comparisonData.naive.avg_risk.toFixed(2)}</td>
+                            <td style={{ padding: '6px 4px' }}>{comparisonData.cpsat.avg_risk.toFixed(2)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Loading comparison...</div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -145,7 +192,7 @@ const SolverStatusBadge = ({ plan }) => {
         letterSpacing: '0.5px',
         marginBottom: '14px'
       }}>
-        {plan.solver_status}
+        {plan.solver_status}, gap {Math.round(plan.solver_gap_percent || 0)}%, {(plan.solver_time_sec || 0).toFixed(1)}s
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
