@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 import os
 import uuid
 
@@ -659,10 +660,12 @@ def hazard_incident(req: FieldReportRequest):
         raise HTTPException(status_code=500, detail=f"Incident report failed: {str(e)}")
 class WhatIfRequest(BaseModel):
     population_multiplier: float = 1.0
+    target_habitation_id: Optional[str] = None
+    hazard_score: Optional[float] = None
 
 @app.post("/plans/simulate")
 def simulate_plan(req: WhatIfRequest):
-    global current_plan, habitations, sites, routes
+    global current_plan, habitations, sites, routes, pending_plan, pending_data
     if current_plan is None:
         raise HTTPException(status_code=400, detail="No active plan. Call /plans/optimize first.")
 
@@ -670,14 +673,41 @@ def simulate_plan(req: WhatIfRequest):
     temp_sites = copy.deepcopy(sites)
     temp_routes = copy.deepcopy(routes)
     
-    for hid, hab in temp_habitations.items():
-        hab["population"] = int(hab["population"] * req.population_multiplier)
+    if req.target_habitation_id and req.target_habitation_id in temp_habitations:
+        hid = req.target_habitation_id
+        temp_habitations[hid]["population"] = int(temp_habitations[hid]["population"] * req.population_multiplier)
+        if req.hazard_score is not None:
+            temp_habitations[hid]["hazard_score"] = req.hazard_score
+            temp_habitations[hid]["flood_score"] = req.hazard_score # Simplify overrides
+    else:
+        for hid, hab in temp_habitations.items():
+            hab["population"] = int(hab["population"] * req.population_multiplier)
         
     try:
         new_result = build_and_solve(temp_habitations, temp_sites, temp_routes)
         
+        # Calculate Plan Health on simulated data
+        from plan_health import calculate_plan_health
+        health_data = calculate_plan_health(new_result, temp_habitations, temp_sites, temp_routes)
+        
         total_unmet = sum(new_result.get("unmet_demand", {}).values())
         current_total_unmet = sum(current_plan.get("unmet_demand", {}).values())
+        
+        # Generate temporary pending plan for "Implement" button
+        simulated_pending_plan = {
+            "plan_id": str(uuid.uuid4()),
+            "status": "pending_approval",
+            "trigger_event": "What-If scenario implemented",
+            "solver_status": new_result["status"],
+            "solver_time_sec": new_result["time_sec"],
+            "solver_gap_percent": new_result.get("gap", 0.0),
+            "objective": new_result.get("objective"),
+            "assignments": new_result["assignments"],
+            "unmet_demand": new_result.get("unmet_demand", {}),
+            "changes": compare_plans(current_plan["assignments"], new_result["assignments"]),
+            "filtering_reasons": new_result.get("filtering_reasons", {}),
+            "invalidation_reason": "What-If Scenario applied"
+        }
         
         return {
             "solver_status": new_result["status"],
@@ -686,7 +716,27 @@ def simulate_plan(req: WhatIfRequest):
             "objective": new_result.get("objective"),
             "total_unmet_demand": total_unmet,
             "current_total_unmet_demand": current_total_unmet,
-            "population_multiplier": req.population_multiplier
+            "population_multiplier": req.population_multiplier,
+            "target_habitation_id": req.target_habitation_id,
+            "hazard_score": req.hazard_score,
+            "health": health_data,
+            "simulated_pending_plan": simulated_pending_plan,
+            "simulated_data": {
+                "habitations": temp_habitations,
+                "sites": temp_sites,
+                "routes": temp_routes
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
+
+class ImplementWhatIfRequest(BaseModel):
+    simulated_pending_plan: dict
+    simulated_data: dict
+
+@app.post("/plans/implement-what-if")
+def implement_what_if(req: ImplementWhatIfRequest):
+    global pending_plan, pending_data
+    pending_plan = req.simulated_pending_plan
+    pending_data = req.simulated_data
+    return {"status": "ok", "pending_plan": pending_plan}

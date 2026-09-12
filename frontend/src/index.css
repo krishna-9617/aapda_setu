@@ -235,3 +235,13 @@ html, body {
   white-space: nowrap;
   pointer-events: auto;
 }
+
+/* Global button states */
+button:not(:disabled):hover {
+  filter: brightness(1.2);
+  transition: filter 0.2s ease;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}

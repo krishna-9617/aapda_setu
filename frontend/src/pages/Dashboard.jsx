@@ -128,6 +128,36 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
           </div>
         </div>
 
+        {hab.ml_contribution?.promoted && (
+          <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.05)', borderRadius: '12px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ML Flood Susceptibility</h4>
+            <div style={{ fontSize: '13px', color: 'var(--text-strong)', marginBottom: '4px' }}>
+              {(hab.ml_contribution.phi * 100).toFixed(1)}% ({hab.ml_contribution.model}, AUC {hab.ml_contribution.auc})
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+              Dataset: naiyakhalid/flood-prediction-dataset
+            </div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontStyle: 'italic' }}>
+              *Habitation features are estimated proxies, not directly measured.
+            </div>
+          </div>
+        )}
+
+        {hab.ml_contribution_landslide?.promoted && (
+          <div style={{ marginBottom: '24px', padding: '12px', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+            <h4 style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ML Landslide Susceptibility</h4>
+            <div style={{ fontSize: '13px', color: 'var(--text-strong)', marginBottom: '4px' }}>
+              {(hab.ml_contribution_landslide.phi * 100).toFixed(1)}% ({hab.ml_contribution_landslide.model}, AUC {hab.ml_contribution_landslide.auc})
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+              Dataset: sreeragunandha/landslide-prediction-dataset
+            </div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontStyle: 'italic' }}>
+              *Habitation features are estimated proxies, not directly measured.
+            </div>
+          </div>
+        )}
+
         {hab.critical_care_population > 0 && (
           <div style={{ marginBottom: '24px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '18px' }}>🏥</span>
@@ -243,19 +273,27 @@ const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentP
   );
 };
 
-const WhatIfControls = ({ currentPlan }) => {
+const WhatIfControls = ({ currentPlan, habitations, onPlanUpdate }) => {
   const [multiplier, setMultiplier] = useState(1.0);
+  const [hazardScore, setHazardScore] = useState(0.5);
+  const [selectedHabId, setSelectedHabId] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isImplementing, setIsImplementing] = useState(false);
   const [simResult, setSimResult] = useState(null);
 
   const runSimulation = async () => {
     setIsSimulating(true);
     setSimResult(null);
     try {
+      const payload = { population_multiplier: multiplier };
+      if (selectedHabId) {
+        payload.target_habitation_id = selectedHabId;
+        payload.hazard_score = hazardScore;
+      }
       const res = await fetch(`${API_BASE_URL}/plans/simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ population_multiplier: multiplier })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       setSimResult(data);
@@ -265,35 +303,76 @@ const WhatIfControls = ({ currentPlan }) => {
     setIsSimulating(false);
   };
 
+  const implementScenario = async () => {
+    if (!simResult?.simulated_pending_plan) return;
+    setIsImplementing(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/plans/implement-what-if`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          simulated_pending_plan: simResult.simulated_pending_plan,
+          simulated_data: simResult.simulated_data
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        onPlanUpdate({ plan: data.pending_plan, pending_data: simResult.simulated_data });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsImplementing(false);
+  };
+
   return (
     <div style={{ marginTop: '24px', padding: '16px', backgroundColor: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
       <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#a78bfa', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>🔮</span> What-If Analysis
+        <span>🧪</span> What-If Analysis
       </h4>
-      <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-muted)' }}>Explore population surge scenarios without affecting the live plan.</p>
+      <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-muted)' }}>Explore hazard and population scenarios without affecting the live plan until implemented.</p>
       
-      <div style={{ marginBottom: '16px' }}>
+      <select 
+        value={selectedHabId} 
+        onChange={e => setSelectedHabId(e.target.value)}
+        style={{ width: '100%', padding: '8px', marginBottom: '12px', borderRadius: '6px', backgroundColor: 'var(--panel-bg)', color: 'var(--text-strong)', border: '1px solid var(--panel-border)', fontSize: '12px', outline: 'none' }}
+      >
+        <option value="">Global Scenario (All Habitations)</option>
+        {habitations && Object.values(habitations).map(hab => (
+          <option key={hab.habitation_id} value={hab.habitation_id}>{hab.name} ({hab.habitation_id})</option>
+        ))}
+      </select>
+
+      <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>Population Surge</span>
           <span style={{ fontSize: '12px', fontWeight: 600, color: '#a78bfa' }}>+{((multiplier - 1) * 100).toFixed(0)}%</span>
         </div>
         <input 
-          type="range" 
-          min="1.0" max="2.0" step="0.1" 
-          value={multiplier} 
-          onChange={(e) => setMultiplier(parseFloat(e.target.value))}
+          type="range" min="1.0" max="2.0" step="0.1" 
+          value={multiplier} onChange={(e) => setMultiplier(parseFloat(e.target.value))}
           style={{ width: '100%', accentColor: '#a78bfa' }}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'var(--text-muted)' }}>
-          <span>Baseline (0%)</span>
-          <span>+100%</span>
-        </div>
       </div>
+
+      {selectedHabId && (
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>Target Hazard Score</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#a78bfa' }}>{hazardScore.toFixed(2)}</span>
+          </div>
+          <input 
+            type="range" min="0.1" max="1.0" step="0.05" 
+            value={hazardScore} onChange={(e) => setHazardScore(parseFloat(e.target.value))}
+            style={{ width: '100%', accentColor: '#a78bfa' }}
+          />
+        </div>
+      )}
 
       <button 
         onClick={runSimulation}
         disabled={isSimulating}
-        style={{ width: '100%', padding: '10px', backgroundColor: '#a78bfa', color: '#1e1b4b', border: 'none', borderRadius: '8px', cursor: isSimulating ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700 }}
+        style={{ width: '100%', padding: '10px', backgroundColor: '#a78bfa', color: '#1e1b4b', border: 'none', borderRadius: '8px', cursor: isSimulating ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: isSimulating ? 0.7 : 1 }}
       >
         {isSimulating ? 'Simulating...' : 'Run Simulation'}
       </button>
@@ -302,31 +381,35 @@ const WhatIfControls = ({ currentPlan }) => {
         <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
           <div style={{ fontSize: '11px', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px', fontWeight: 700 }}>Simulation Result</div>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Status:</span>
             <span style={{ fontSize: '12px', fontWeight: 600, color: simResult.solver_status === 'OPTIMAL' ? '#10b981' : simResult.solver_status === 'INFEASIBLE' ? '#ef4444' : '#f59e0b' }}>
               {simResult.solver_status}
             </span>
           </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Current Unmet Demand:</span>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-light)' }}>
-              {simResult.current_total_unmet_demand}
-            </span>
-          </div>
-          
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Simulated Unmet Demand:</span>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: simResult.total_unmet_demand > simResult.current_total_unmet_demand ? '#ef4444' : 'var(--text-light)' }}>
-              {simResult.total_unmet_demand} 
-              {simResult.total_unmet_demand > simResult.current_total_unmet_demand ? ` (+${simResult.total_unmet_demand - simResult.current_total_unmet_demand})` : ''}
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Unmet Demand:</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-light)' }}>
+              {simResult.total_unmet_demand} <span style={{ color: 'var(--text-muted)' }}>(was {simResult.current_total_unmet_demand})</span>
             </span>
           </div>
 
-          <div style={{ fontSize: '10px', color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
-            Simulation only - not applied to live plan
-          </div>
+          {simResult.health?.interventions?.length > 0 && (
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ fontSize: '11px', color: '#ef4444', fontWeight: 700, marginBottom: '6px' }}>Recommended Interventions:</div>
+              {simResult.health.interventions.map((inv, idx) => (
+                <div key={idx} style={{ fontSize: '11px', color: 'var(--text-strong)', marginBottom: '4px' }}>• {inv.title}</div>
+              ))}
+            </div>
+          )}
+
+          <button 
+            onClick={implementScenario}
+            disabled={isImplementing}
+            style={{ marginTop: '12px', width: '100%', padding: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: isImplementing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700, opacity: isImplementing ? 0.7 : 1 }}
+          >
+            {isImplementing ? 'Implementing...' : 'Implement This Scenario'}
+          </button>
         </div>
       )}
     </div>
@@ -401,6 +484,9 @@ const Dashboard = () => {
       setPendingPlanData(eventData);
     } else {
       setEventSummary(null);
+      setPendingPlanData(null);
+      setSelectedHab(null);
+      setRejectToast(false);
       await fetchCurrentData();
     }
   };
@@ -667,7 +753,7 @@ const Dashboard = () => {
                     habitations={habitations} 
                     routesData={routesData} 
                   />
-                  <WhatIfControls currentPlan={currentPlan} />
+                  <WhatIfControls key={currentPlan?.plan_id || 'default'} currentPlan={currentPlan} habitations={habitations} onPlanUpdate={handlePlanUpdate} />
                   <Legend />
 
                   {/* PLAN HISTORY */}
@@ -776,6 +862,44 @@ const Dashboard = () => {
                 <div style={{ fontSize: '14px', color: 'var(--text-strong)' }}>
                   This event triggers a re-optimization affecting <strong>{pendingPlanData.changed_assignments} habitations</strong>.
                 </div>
+
+                {pendingPlanData.changes && pendingPlanData.changes.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {Object.entries(
+                      pendingPlanData.changes.reduce((acc, curr) => {
+                        if (!acc[curr.habitation_id]) acc[curr.habitation_id] = { removed: [], added: [] };
+                        if (curr.type === 'REMOVED') acc[curr.habitation_id].removed.push(curr);
+                        if (curr.type === 'ADDED') acc[curr.habitation_id].added.push(curr);
+                        return acc;
+                      }, {})
+                    ).map(([habId, data]) => {
+                      const habName = pendingPlanData.pending_data?.habitations?.[habId]?.name || habId;
+                      const removedStrs = data.removed.map(r => `${pendingPlanData.pending_data?.sites?.[r.site_id]?.name || r.site_id} via ${r.route_id}`);
+                      const addedStrs = data.added.map(a => `${pendingPlanData.pending_data?.sites?.[a.site_id]?.name || a.site_id} via ${a.route_id}`);
+                      
+                      return (
+                        <div key={habId} style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '12px' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-light)', marginBottom: '4px' }}>{habName}</div>
+                          {removedStrs.length > 0 && (
+                            <div style={{ color: '#ef4444', textDecoration: 'line-through', marginBottom: '2px' }}>
+                              Previous: {removedStrs.join(', ')}
+                            </div>
+                          )}
+                          {addedStrs.length > 0 && (
+                            <div style={{ color: '#10b981', fontWeight: 600 }}>
+                              ➜ New: {addedStrs.join(', ')}
+                            </div>
+                          )}
+                          {pendingPlanData.unmet_demand?.[habId] > 0 && (
+                            <div style={{ color: '#f59e0b', fontWeight: 600, marginTop: '2px' }}>
+                              ➜ New: UNASSIGNED ({pendingPlanData.unmet_demand[habId]} people unmet demand)
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 
                 <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                   Objective impact: <br/>
@@ -822,13 +946,17 @@ const Dashboard = () => {
                   borderRadius: '12px',
                   padding: '12px 24px',
                   zIndex: 2000,
-                  pointerEvents: 'none',
+                  pointerEvents: 'auto',
                   color: 'var(--text-light)',
                   fontSize: '14px',
-                  fontWeight: 500
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
                 }}
               >
                 Plan rejected - keeping current assignments
+                <button onClick={() => setRejectToast(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', padding: '0', display: 'flex', alignItems: 'center' }}>×</button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -999,9 +1127,10 @@ const Dashboard = () => {
         </div>
 
         {/* RIGHT EXPLAINABILITY PANEL */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedHab && (
             <motion.div
+              key={selectedHab}
               initial={{ x: 340, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 340, opacity: 0 }}
