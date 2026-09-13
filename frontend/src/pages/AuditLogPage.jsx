@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { Download, FileText } from "lucide-react";
 
-const AuditLogPage = () => {
+const AuditLogPage = ({ theme }) => {
   const [auditLog, setAuditLog] = useState([]);
 
   useEffect(() => {
@@ -26,7 +26,13 @@ const AuditLogPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-slate-100 p-8 pt-24 pb-20 relative overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="min-h-screen p-8 pt-28 pb-20 relative overflow-hidden"
+    >
       {/* Background Glow */}
       <div className="absolute top-[30%] left-[20%] w-[60%] h-[40%] rounded-full bg-cyan-900/10 blur-[150px] pointer-events-none" />
 
@@ -105,7 +111,7 @@ const AuditLogPage = () => {
           </div>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

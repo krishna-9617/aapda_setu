@@ -57,12 +57,22 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       animation: {
+        pulse: 'pulse var(--duration) ease-out infinite',
+        'pulse-ripple': 'pulse-ripple var(--duration) ease-out infinite',
         "shimmer-slide": "shimmer-slide var(--speed) ease-in-out infinite alternate",
         "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
         "gradient": "gradient 8s linear infinite",
         "aurora": "aurora 60s linear infinite",
       },
       keyframes: {
+        pulse: {
+          '0%, 100%': { boxShadow: '0 0 0 0 var(--pulse-color)' },
+          '50%': { boxShadow: '0 0 0 8px var(--pulse-color)' },
+        },
+        'pulse-ripple': {
+          '0%': { boxShadow: '0 0 0 0 var(--pulse-color)' },
+          '100%': { boxShadow: '0 0 0 12px rgba(255,255,255,0)' },
+        },
         "shimmer-slide": {
           to: {
             transform: "translate(calc(100cqw - 100%), 0)",

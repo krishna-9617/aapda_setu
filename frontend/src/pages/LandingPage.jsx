@@ -47,15 +47,22 @@ const itemVariants = {
 
 const LandingPage = ({ theme }) => {
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#000000',
-      color: '#F8FAFC',
-      fontFamily: 'Lexend, sans-serif',
-      overflowX: 'hidden'
-    }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#000000',
+        color: '#F8FAFC',
+        fontFamily: 'Lexend, sans-serif',
+        overflowX: 'hidden',
+        overflowY: 'auto'
+      }}
+    >
       {/* Hero Section */}
-      <AuroraBackground className="!bg-[#000000] !h-screen">
+      <AuroraBackground className="!bg-[#000000] !h-screen !overflow-hidden">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
@@ -76,6 +83,7 @@ const LandingPage = ({ theme }) => {
               letterSpacing: '-0.02em',
               lineHeight: 1.1,
               margin: 0,
+              color: '#F8FAFC',
               textShadow: '0 0 40px rgba(99, 102, 241, 0.3)'
             }}
           >
@@ -84,7 +92,7 @@ const LandingPage = ({ theme }) => {
               background: 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 20px rgba(99,102,241,0.4)'
+              display: 'inline-block'
             }}>
               disaster response.
             </span>
@@ -161,6 +169,51 @@ const LandingPage = ({ theme }) => {
         </div>
       </section>
 
+      {/* How It Works: CP-SAT approach */}
+      <section style={{ padding: '80px 24px 120px', maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 10 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6 }}
+          style={{ textAlign: 'center', marginBottom: '64px' }}
+        >
+          <h2 style={{ fontSize: '36px', fontWeight: 700, color: '#F8FAFC', marginBottom: '16px' }}>How the Solver Works</h2>
+          <p style={{ fontSize: '17px', color: '#94A3B8', maxWidth: '700px', margin: '0 auto', lineHeight: 1.7 }}>
+            Our CP-SAT (Constraint Programming — Satisfiability) engine from Google OR-Tools solves the assignment problem in milliseconds, finding the globally optimal routing plan under real-world hard constraints.
+          </p>
+        </motion.div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+          {[
+            { step: '01', title: 'Ingest Live Data', desc: 'Population, hazard scores, road capacity, and shelter availability are fetched and pre-processed in real-time.' },
+            { step: '02', title: 'Build the Model', desc: 'Decision variables encode which habitation goes to which shelter, with constraints on capacity, fleet, medical, and food requirements.' },
+            { step: '03', title: 'Solve & Optimize', desc: 'CP-SAT minimizes total travel time while meeting every hard constraint. Infeasible constraints are relaxed and flagged for human review.' },
+            { step: '04', title: 'Human Approval', desc: 'The proposed re-plan is surfaced as a pending approval. A field commander verifies and approves before any operational change goes live.' },
+          ].map((item, i) => (
+            <motion.div
+              key={item.step}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              style={{
+                padding: '28px',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(18, 18, 18, 0.4)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4)'
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#6366F1', letterSpacing: '2px', marginBottom: '12px' }}>STEP {item.step}</div>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#F8FAFC', marginBottom: '10px', margin: '0 0 10px 0' }}>{item.title}</h3>
+              <p style={{ fontSize: '14px', color: '#94A3B8', lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Demo Banner */}
       <div style={{ padding: '48px 24px', backgroundColor: 'rgba(18, 18, 18, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.1)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', textAlign: 'center', backdropFilter: 'blur(15px)' }}>
         <motion.div
@@ -180,7 +233,7 @@ const LandingPage = ({ theme }) => {
       <footer style={{ padding: '48px 24px', textAlign: 'center', color: '#475569', fontSize: '14px' }}>
         &copy; 2026 Aapda Setu Operations. Built for high-reliability environments.
       </footer>
-    </div>
+    </motion.div>
   );
 };
 

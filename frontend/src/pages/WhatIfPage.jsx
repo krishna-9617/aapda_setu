@@ -1,38 +1,85 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, ArrowRight, Play, CheckCircle2 } from "lucide-react";
+import { Beaker, Play, CheckCircle2, GripVertical } from "lucide-react";
 import { API_BASE_URL } from "../config";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
-import { Compare } from "@/components/ui/compare";
+import MapView from "../components/MapView";
 
-const WhatIfPage = () => {
-  const [multiplier, setMultiplier] = useState([1.0]);
-  const [hazardScore, setHazardScore] = useState([0.5]);
+const WhatIfPage = ({ theme }) => {
+  const [multiplier, setMultiplier] = useState(1.0);
+  const [hazardScore, setHazardScore] = useState(0.5);
   const [selectedHabId, setSelectedHabId] = useState("GLOBAL");
-  
+
   const [habitations, setHabitations] = useState({});
+  const [sites, setSites] = useState({});
+  const [routesData, setRoutesData] = useState({});
+  const [currentPlan, setCurrentPlan] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isImplementing, setIsImplementing] = useState(false);
   const [simResult, setSimResult] = useState(null);
 
+  // Resizable panel
+  const [leftPct, setLeftPct] = useState(40);
+  const containerRef = useRef(null);
+  const isDragging = useRef(false);
+
+  const startDrag = useCallback((e) => {
+    e.preventDefault();
+    isDragging.current = true;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+  }, []);
+
+  const stopDrag = useCallback(() => {
+    isDragging.current = false;
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  }, []);
+
+  const onMouseMove = useCallback((e) => {
+    if (!isDragging.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const pct = Math.max(20, Math.min(75, (x / rect.width) * 100));
+    setLeftPct(pct);
+  }, []);
+
   useEffect(() => {
-    fetch(`${API_BASE_URL}/habitations`)
-      .then(r => r.json())
-      .then(d => setHabitations(d))
-      .catch(e => console.error(e));
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', stopDrag);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', stopDrag);
+    };
+  }, [onMouseMove, stopDrag]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [habsRes, sitesRes, routesRes, planRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/habitations`),
+          fetch(`${API_BASE_URL}/sites`),
+          fetch(`${API_BASE_URL}/routes`),
+          fetch(`${API_BASE_URL}/plans/current`)
+        ]);
+        setHabitations(await habsRes.json());
+        setSites(await sitesRes.json());
+        setRoutesData(await routesRes.json());
+        setCurrentPlan(await planRes.json());
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
   }, []);
 
   const runSimulation = async () => {
     setIsSimulating(true);
     setSimResult(null);
     try {
-      const payload = { population_multiplier: multiplier[0] };
+      const payload = { population_multiplier: multiplier };
       if (selectedHabId !== "GLOBAL") {
         payload.target_habitation_id = selectedHabId;
-        payload.hazard_score = hazardScore[0];
+        payload.hazard_score = hazardScore;
       }
       const res = await fetch(`${API_BASE_URL}/plans/simulate`, {
         method: 'POST',
@@ -61,8 +108,10 @@ const WhatIfPage = () => {
       });
       const data = await res.json();
       if (data.status === 'ok') {
-        alert("Scenario implemented successfully!");
+        alert("Scenario implemented successfully! Redirecting to Dashboard.");
         setSimResult(null);
+        const planRes = await fetch(`${API_BASE_URL}/plans/current`);
+        setCurrentPlan(await planRes.json());
       }
     } catch (e) {
       console.error(e);
@@ -70,177 +119,243 @@ const WhatIfPage = () => {
     setIsImplementing(false);
   };
 
-  // We use Compare as a generic split-view comparison here
-  const BaselineCard = () => (
-    <div className="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-8 border-r border-white/10">
-      <h3 className="text-slate-400 font-medium mb-2 tracking-widest text-sm uppercase">Baseline Plan</h3>
-      <div className="text-4xl font-bold text-slate-100 mb-2">
-        {simResult?.current_total_unmet_demand} <span className="text-xl text-slate-500 font-normal">Unmet</span>
-      </div>
-      <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm border border-emerald-500/20">
-        Status: OPTIMAL
-      </div>
-    </div>
-  );
+  const mapHabitations = simResult?.simulated_data?.habitations || habitations;
+  const mapPlan = simResult?.simulated_pending_plan || currentPlan;
+  const surgePercent = Math.round((multiplier - 1) * 100);
 
-  const SimulatedCard = () => (
-    <div className="h-full w-full bg-indigo-950/40 flex flex-col items-center justify-center p-8">
-      <h3 className="text-indigo-400 font-medium mb-2 tracking-widest text-sm uppercase">Simulated Outcome</h3>
-      <div className="text-4xl font-bold text-white mb-2">
-        {simResult?.total_unmet_demand} <span className="text-xl text-indigo-300 font-normal">Unmet</span>
-      </div>
-      <div className={`px-3 py-1 rounded-full text-sm border ${
-        simResult?.solver_status === 'OPTIMAL' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-        simResult?.solver_status === 'INFEASIBLE' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
-        'bg-amber-500/10 text-amber-400 border-amber-500/20'
-      }`}>
-        Status: {simResult?.solver_status}
-      </div>
-      
-      {simResult?.health?.interventions?.length > 0 && (
-        <div className="mt-6 text-sm text-amber-400 bg-amber-500/10 p-3 rounded-md border border-amber-500/20 max-w-xs text-center">
-          <span className="font-bold block mb-1">Warning:</span>
-          {simResult.health.interventions.length} interventions recommended to resolve demand.
+  const controlsContent = (
+    <div className="relative z-10 space-y-6">
+      <div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] rounded-full bg-violet-900/20 blur-[150px] pointer-events-none" />
+
+      {/* Header */}
+      <div>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/30 mb-4">
+          <Beaker className="text-violet-400" />
         </div>
-      )}
+        <h1 className="text-3xl font-bold mb-2">What-If Analysis</h1>
+        <p className="text-slate-400 text-sm">
+          Model hazard spikes and population surges in a sandbox before promoting to the live plan.
+        </p>
+      </div>
+
+      {/* Scenario Parameters */}
+      <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 backdrop-blur-sm space-y-6">
+        <h3 className="text-base font-semibold text-white">Scenario Parameters</h3>
+
+        {/* Target Area */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-300">Target Area</label>
+          <select
+            value={selectedHabId}
+            onChange={e => setSelectedHabId(e.target.value)}
+            className="w-full p-2.5 rounded-lg bg-black/50 border border-white/10 text-white text-sm outline-none focus:border-violet-500/50 transition-colors"
+          >
+            <option value="GLOBAL">Global Scenario (All Habitations)</option>
+            {Object.values(habitations).map(hab => (
+              <option key={hab.habitation_id} value={hab.habitation_id}>
+                {hab.name} ({hab.habitation_id})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Population Surge Slider */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-slate-300">Population Surge</label>
+            <span className="text-violet-400 font-semibold text-sm">+{surgePercent}%</span>
+          </div>
+          <input
+            type="range"
+            min={1.0} max={2.0} step={0.1}
+            value={multiplier}
+            onChange={e => setMultiplier(parseFloat(e.target.value))}
+            className="w-full accent-violet-500"
+          />
+        </div>
+
+        {/* Hazard Score (conditional) */}
+        {selectedHabId !== "GLOBAL" && (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-slate-300">Target Hazard Score</label>
+              <span className="text-violet-400 font-semibold text-sm">{hazardScore.toFixed(2)}</span>
+            </div>
+            <input
+              type="range"
+              min={0.1} max={1.0} step={0.05}
+              value={hazardScore}
+              onChange={e => setHazardScore(parseFloat(e.target.value))}
+              className="w-full accent-violet-500"
+            />
+          </div>
+        )}
+
+        {/* Run button */}
+        <button
+          onClick={runSimulation}
+          disabled={isSimulating}
+          className="w-full py-3 px-4 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isSimulating ? "Simulating..." : <><Play className="w-4 h-4" /> Run Simulation</>}
+        </button>
+      </div>
+
+      {/* Results */}
+      <AnimatePresence mode="wait">
+        {!simResult ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex flex-col items-center justify-center py-12 border border-dashed border-white/10 rounded-xl bg-white/[0.01]"
+          >
+            <Beaker className="w-12 h-12 text-slate-700 mb-3" />
+            <p className="text-slate-500 text-sm">Run a simulation to see impact.</p>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* Baseline vs Simulated cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-slate-800/50 border border-white/10 text-center">
+                <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Baseline</h4>
+                <motion.div
+                  key={simResult.current_total_unmet_demand}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-3xl font-bold text-slate-100 mb-1"
+                >
+                  {simResult.current_total_unmet_demand ?? 0}
+                </motion.div>
+                <p className="text-xs text-slate-500">Unmet Demand</p>
+              </div>
+
+              <div className={`p-4 rounded-xl border text-center ${
+                simResult.solver_status === 'OPTIMAL'
+                  ? 'bg-emerald-950/30 border-emerald-500/20'
+                  : simResult.solver_status === 'INFEASIBLE'
+                  ? 'bg-red-950/30 border-red-500/20'
+                  : 'bg-amber-950/30 border-amber-500/20'
+              }`}>
+                <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Simulated</h4>
+                <motion.div
+                  key={simResult.total_unmet_demand}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-3xl font-bold text-white mb-1"
+                >
+                  {simResult.total_unmet_demand ?? 0}
+                </motion.div>
+                <p className="text-xs text-slate-500">Unmet Demand</p>
+                <p className={`text-xs mt-1 font-medium ${
+                  simResult.solver_status === 'OPTIMAL' ? 'text-emerald-400' :
+                  simResult.solver_status === 'INFEASIBLE' ? 'text-red-400' : 'text-amber-400'
+                }`}>
+                  {simResult.solver_status}
+                </p>
+              </div>
+            </div>
+
+            {/* Change indicator */}
+            {simResult.current_total_unmet_demand !== undefined && (
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <span className="text-slate-400">Unmet demand change:</span>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`font-bold ${
+                    (simResult.total_unmet_demand || 0) > (simResult.current_total_unmet_demand || 0)
+                      ? 'text-red-400' : 'text-emerald-400'
+                  }`}
+                >
+                  {(simResult.total_unmet_demand || 0) - (simResult.current_total_unmet_demand || 0) >= 0 ? '+' : ''}
+                  {(simResult.total_unmet_demand || 0) - (simResult.current_total_unmet_demand || 0)}
+                </motion.span>
+              </div>
+            )}
+
+            {/* Warnings */}
+            {simResult.health?.interventions?.length > 0 && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400 text-center">
+                <strong>Warning:</strong> {simResult.health.interventions.length} interventions recommended.
+              </div>
+            )}
+
+            {/* Implement button */}
+            <button
+              onClick={implementScenario}
+              disabled={isImplementing}
+              className="w-full py-3 px-4 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isImplementing ? "Implementing..." : <><CheckCircle2 className="w-5 h-5" /> Implement This Scenario</>}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#000000] text-slate-100 p-8 pt-24 pb-20 relative overflow-hidden flex flex-col md:flex-row gap-8">
-      {/* Background Glow */}
-      <div className="absolute top-[10%] left-[40%] w-[60%] h-[60%] rounded-full bg-violet-900/20 blur-[150px] pointer-events-none" />
-
-      {/* Left Column: Controls */}
-      <motion.div 
-        initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} 
-        className="w-full md:w-[400px] shrink-0 z-10 flex flex-col gap-6"
-      >
-        <div>
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/30 mb-4">
-            <Beaker className="text-violet-400" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">What-If Analysis</h1>
-          <p className="text-slate-400 text-sm">
-            Model hazard spikes and population surges in a sandbox environment before promoting to the live operational plan.
-          </p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="min-h-screen pt-28 relative overflow-hidden"
+    >
+      {/* Desktop resizable split */}
+      <div ref={containerRef} className="hidden lg:flex h-[calc(100vh-7rem)] select-none">
+        {/* LEFT PANEL */}
+        <div
+          style={{ width: `${leftPct}%` }}
+          className="overflow-y-auto p-6 lg:p-8 shrink-0"
+        >
+          {controlsContent}
         </div>
 
-        <Card className="bg-white/[0.02] border-white/10 backdrop-blur-md">
-          <CardHeader>
-            <CardTitle className="text-lg text-white">Scenario Parameters</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-slate-300">Target Area</label>
-              <Select value={selectedHabId} onValueChange={setSelectedHabId}>
-                <SelectTrigger className="bg-black/50 border-white/10 text-white">
-                  <SelectValue placeholder="Select habitation" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-white/10 text-white">
-                  <SelectItem value="GLOBAL">Global Scenario (All Habitations)</SelectItem>
-                  {Object.values(habitations).map(hab => (
-                    <SelectItem key={hab.habitation_id} value={hab.habitation_id}>
-                      {hab.name} ({hab.habitation_id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* DRAG HANDLE */}
+        <div
+          onMouseDown={startDrag}
+          className="w-2 shrink-0 relative cursor-col-resize flex items-center justify-center group"
+          style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+        >
+          <div className="absolute inset-y-0 left-0 right-0 group-hover:bg-violet-500/20 transition-colors" />
+          <div className="relative z-10 opacity-30 group-hover:opacity-80 transition-opacity">
+            <GripVertical className="w-4 h-4 text-slate-400" />
+          </div>
+        </div>
 
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-slate-300">Population Surge</label>
-                <span className="text-violet-400 font-semibold text-sm">+{((multiplier[0] - 1) * 100).toFixed(0)}%</span>
-              </div>
-              <Slider 
-                value={multiplier} 
-                onValueChange={setMultiplier} 
-                min={1.0} max={2.0} step={0.1}
-                className="[&_[role=slider]]:bg-violet-500"
-              />
-            </div>
-
-            {selectedHabId !== "GLOBAL" && (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium text-slate-300">Target Hazard Score</label>
-                  <span className="text-violet-400 font-semibold text-sm">{hazardScore[0].toFixed(2)}</span>
-                </div>
-                <Slider 
-                  value={hazardScore} 
-                  onValueChange={setHazardScore} 
-                  min={0.1} max={1.0} step={0.05}
-                  className="[&_[role=slider]]:bg-violet-500"
-                />
-              </div>
-            )}
-
-            <ShimmerButton
-              onClick={runSimulation}
-              disabled={isSimulating}
-              className="w-full mt-4"
-              background="rgba(139, 92, 246, 0.2)"
-              shimmerColor="rgba(255,255,255,0.5)"
-            >
-              <span className="text-violet-300 font-semibold flex items-center gap-2">
-                {isSimulating ? "Simulating..." : <><Play className="w-4 h-4" /> Run Simulation</>}
-              </span>
-            </ShimmerButton>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Right Column: Results */}
-      <div className="flex-1 z-10 flex flex-col">
-        <AnimatePresence mode="wait">
-          {!simResult ? (
-            <motion.div 
-              key="empty"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-white/[0.01]"
-            >
-              <Beaker className="w-16 h-16 text-slate-700 mb-4" />
-              <p className="text-slate-500 font-medium">Configure parameters and run simulation to view impact.</p>
-            </motion.div>
-          ) : (
-            <motion.div 
-              key="results"
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col h-full gap-6"
-            >
-              <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative h-[400px]">
-                <Compare 
-                  firstImage={<BaselineCard />}
-                  secondImage={<SimulatedCard />}
-                  firstImageClassName="object-cover"
-                  secondImageClassname="object-cover"
-                  className="w-full h-full"
-                  slideMode="hover"
-                />
-                
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 text-xs font-medium text-slate-300 z-50">
-                  Hover or drag to compare
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <ShimmerButton
-                  onClick={implementScenario}
-                  disabled={isImplementing}
-                  background="rgba(16, 185, 129, 0.2)"
-                  shimmerColor="rgba(255,255,255,0.5)"
-                >
-                  <span className="text-emerald-300 font-semibold flex items-center gap-2 px-4">
-                    {isImplementing ? "Implementing..." : <><CheckCircle2 className="w-5 h-5" /> Implement This Scenario</>}
-                  </span>
-                </ShimmerButton>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* RIGHT PANEL: Map Preview */}
+        <motion.div layoutId="live-map" className="flex-1 relative border-l border-white/10 min-w-0">
+          <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-violet-300">
+            {simResult ? "⚡ Simulated Preview" : "Current Plan"}
+          </div>
+          <div className="w-full h-full min-h-[400px]">
+            <MapView
+              habitations={mapHabitations}
+              sites={sites}
+              currentPlan={mapPlan}
+              routesData={routesData}
+              selectedHab={null}
+              onHabClick={() => {}}
+              theme={theme || 'dark'}
+            />
+          </div>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Mobile stacked */}
+      <div className="lg:hidden flex flex-col">
+        <div className="overflow-y-auto p-6">{controlsContent}</div>
+        <div className="h-[350px] border-t border-white/10">
+          <MapView habitations={mapHabitations} sites={sites} currentPlan={mapPlan}
+            routesData={routesData} selectedHab={null} onHabClick={() => {}} theme={theme || 'dark'} />
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

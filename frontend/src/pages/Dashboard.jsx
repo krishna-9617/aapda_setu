@@ -1,3 +1,4 @@
+import ApprovalModal from '../components/ApprovalModal';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -70,6 +71,28 @@ const Legend = () => (
     ))}
   </div>
 );
+
+
+// Animated radial gauge for ML susceptibility scores
+const RadialGauge = ({ value, color, size = 56 }) => {
+  const r = (size / 2) - 5;
+  const circumference = 2 * Math.PI * r;
+  const dashOffset = circumference * (1 - Math.min(1, value));
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={5} />
+      <motion.circle
+        cx={size/2} cy={size/2} r={r} fill="none"
+        stroke={color} strokeWidth={5}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: dashOffset }}
+        transition={{ duration: 1.2, ease: 'easeOut' }}
+      />
+    </svg>
+  );
+};
 
 const ExplainabilityPanelContent = ({ habitationId, habitations, sites, currentPlan, routesData, onClose }) => {
   if (!habitationId || !currentPlan || !habitations[habitationId]) return null;
@@ -417,7 +440,7 @@ const WhatIfControls = ({ currentPlan, habitations, onPlanUpdate }) => {
 };
 
 
-const Dashboard = () => {
+const Dashboard = ({ theme }) => {
   const [habitations, setHabitations] = useState({});
   const [sites, setSites] = useState({});
   const [routesData, setRoutesData] = useState({});
@@ -425,7 +448,7 @@ const Dashboard = () => {
   const [selectedHab, setSelectedHab] = useState(null);
   const [healthStatus, setHealthStatus] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [theme, setTheme] = useState('dark');
+  
   const [eventSummary, setEventSummary] = useState(null);
   const [pendingPlanData, setPendingPlanData] = useState(null);
   const [rejectToast, setRejectToast] = useState(false);
@@ -540,23 +563,12 @@ const Dashboard = () => {
   const displayHabs = pendingPlanData?.pending_data?.habitations || habitations;
   const sortedHabs = Object.values(displayHabs).sort((a, b) => b.priority_score - a.priority_score);
 
-  const exportAuditLog = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLog, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "aapda_setu_audit_log.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  };
+
 
   return (
     <div className={theme === 'dark' ? 'theme-dark' : 'theme-light'} style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)', backgroundImage: 'var(--bg-grad)', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* DEMO MODE BANNER */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '24px', backgroundColor: 'rgba(245, 158, 11, 0.15)', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, color: '#f59e0b', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
-        Demo mode: events and some data are simulated for illustration.
-      </div>
+      
       
       {/* BACKGROUND MAP LAYER */}
       <div style={{ 
@@ -592,37 +604,6 @@ const Dashboard = () => {
       {/* FOREGROUND UI LAYER */}
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', width: '100%', height: '100%', pointerEvents: 'none', padding: '16px', gap: '16px' }}>
         
-        {/* HAMBURGER BUTTON */}
-        <button 
-          className="hamburger-btn"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          style={{
-            position: 'absolute',
-            top: '32px',
-            left: '32px',
-            zIndex: 100,
-            pointerEvents: 'auto',
-            background: 'var(--panel-bg)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid var(--panel-border)',
-            borderRadius: '10px',
-            boxShadow: '0 4px 12px var(--shadow-light)',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '5px',
-            cursor: 'pointer',
-            outline: 'none'
-          }}
-        >
-          <motion.div animate={{ rotate: isSidebarOpen ? 45 : 0, y: isSidebarOpen ? 7 : 0 }} style={{ width: '20px', height: '2px', backgroundColor: 'var(--text)', borderRadius: '2px' }} />
-          <motion.div animate={{ opacity: isSidebarOpen ? 0 : 1 }} style={{ width: '20px', height: '2px', backgroundColor: 'var(--text)', borderRadius: '2px' }} />
-          <motion.div animate={{ rotate: isSidebarOpen ? -45 : 0, y: isSidebarOpen ? -7 : 0 }} style={{ width: '20px', height: '2px', backgroundColor: 'var(--text)', borderRadius: '2px' }} />
-        </button>
-
         {/* LEFT SIDEBAR */}
         <AnimatePresence>
           {isSidebarOpen && (
@@ -634,47 +615,6 @@ const Dashboard = () => {
               style={{ pointerEvents: 'auto', height: '100%', zIndex: 10 }}
             >
               <TiltCard className="sidebar-container" style={{ width: '380px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <div style={{ position: 'relative', padding: '24px 24px 24px 72px', borderBottom: '1px solid var(--panel-border-light)', background: 'linear-gradient(to right, rgba(56, 189, 248, 0.1), transparent)' }}>
-                  <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-light)', letterSpacing: '-0.5px' }}>Aapda Setu</h2>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Barpeta Dashboard</span>
-                    <div 
-                      title="Hazard layers, road network, and shelter data are cached locally - the decision engine doesn't require live internet to compute plans."
-                      style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '2px 6px', borderRadius: '4px', cursor: 'help' }}
-                    >
-                      <span style={{ fontSize: '8px' }}>🟢</span>
-                      <span style={{ fontSize: '9px', color: '#10b981', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Offline-ready</span>
-                    </div>
-                  </div>
-                  
-                  {/* THEME TOGGLE BUTTON */}
-                  <button 
-                    className="theme-toggle-btn"
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      right: '24px',
-                      transform: 'translateY(-50%)',
-                      zIndex: 10,
-                      pointerEvents: 'auto',
-                      background: 'var(--inner-bg)',
-                      border: '1px solid var(--panel-border)',
-                      borderRadius: '8px',
-                      width: '36px',
-                      height: '36px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      outline: 'none',
-                      fontSize: '16px'
-                    }}
-                  >
-                    {theme === 'dark' ? '☀️' : '🌙'}
-                  </button>
-                </div>
-
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
                   <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-strong)' }}>Priority Queue</h4>
                   
@@ -785,118 +725,7 @@ const Dashboard = () => {
 
           <AnimatePresence>
             {pendingPlanData && (
-              <motion.div
-                initial={{ y: -50, opacity: 0, scale: 0.95 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                exit={{ y: -50, opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, type: 'spring' }}
-                className="approval-modal"
-                style={{
-                  position: 'absolute',
-                  top: '80px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  backgroundColor: 'var(--panel-bg)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid var(--panel-border)',
-                  boxShadow: '0 12px 40px var(--shadow)',
-                  borderRadius: '16px',
-                  padding: '24px',
-                  zIndex: 2000,
-                  pointerEvents: 'auto',
-                  fontFamily: 'Inter, sans-serif',
-                  color: 'var(--text-light)',
-                  width: '420px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--panel-border)', paddingBottom: '12px' }}>
-                  <h4 style={{ margin: 0, color: '#f59e0b', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>⚠</span> Proposed Plan Change
-                  </h4>
-                  <div style={{ backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Source: DEMO EVENT SIMULATOR
-                  </div>
-                </div>
-                
-                {pendingPlanData.invalidation_reason && (
-                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px' }}>
-                    <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>⚠️</span> Plan Invalidated
-                    </div>
-                    <div style={{ color: 'var(--text-strong)', fontSize: '13px', lineHeight: '1.4' }}>
-                      {pendingPlanData.invalidation_reason}
-                    </div>
-                  </div>
-                )}
-                
-                <div style={{ fontSize: '14px', color: 'var(--text-strong)' }}>
-                  This event triggers a re-optimization affecting <strong>{pendingPlanData.changed_assignments} habitations</strong>.
-                </div>
-
-                {pendingPlanData.changes && pendingPlanData.changes.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
-                    {Object.entries(
-                      pendingPlanData.changes.reduce((acc, curr) => {
-                        if (!acc[curr.habitation_id]) acc[curr.habitation_id] = { removed: [], added: [] };
-                        if (curr.type === 'REMOVED') acc[curr.habitation_id].removed.push(curr);
-                        if (curr.type === 'ADDED') acc[curr.habitation_id].added.push(curr);
-                        return acc;
-                      }, {})
-                    ).map(([habId, data]) => {
-                      const habName = pendingPlanData.pending_data?.habitations?.[habId]?.name || habId;
-                      const removedStrs = data.removed.map(r => `${pendingPlanData.pending_data?.sites?.[r.site_id]?.name || r.site_id} via ${r.route_id}`);
-                      const addedStrs = data.added.map(a => `${pendingPlanData.pending_data?.sites?.[a.site_id]?.name || a.site_id} via ${a.route_id}`);
-                      
-                      return (
-                        <div key={habId} style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '12px' }}>
-                          <div style={{ fontWeight: 600, color: 'var(--text-light)', marginBottom: '4px' }}>{habName}</div>
-                          {removedStrs.length > 0 && (
-                            <div style={{ color: '#ef4444', textDecoration: 'line-through', marginBottom: '2px' }}>
-                              Previous: {removedStrs.join(', ')}
-                            </div>
-                          )}
-                          {addedStrs.length > 0 && (
-                            <div style={{ color: '#10b981', fontWeight: 600 }}>
-                              ➜ New: {addedStrs.join(', ')}
-                            </div>
-                          )}
-                          {pendingPlanData.unmet_demand?.[habId] > 0 && (
-                            <div style={{ color: '#f59e0b', fontWeight: 600, marginTop: '2px' }}>
-                              ➜ New: UNASSIGNED ({pendingPlanData.unmet_demand[habId]} people unmet demand)
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                  Objective impact: <br/>
-                  <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>{pendingPlanData.old_objective?.toFixed(1) || 'N/A'}</span> 
-                  {' '} -{'>'} {' '}
-                  <span style={{ color: '#10b981', fontWeight: 'bold' }}>{pendingPlanData.new_objective?.toFixed(1) || 'N/A'}</span>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                  <button 
-                    onClick={handleApprove}
-                    style={{ flex: 1, padding: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Approve & Apply
-                  </button>
-                  <button 
-                    onClick={handleReject}
-                    style={{ flex: 1, padding: '10px', backgroundColor: 'var(--inner-bg)', color: 'var(--text-strong)', border: '1px solid var(--panel-border)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Reject & Keep Current Plan
-                  </button>
-                </div>
-              </motion.div>
+                <ApprovalModal pendingPlanData={pendingPlanData} onApprove={handleApprove} onReject={handleReject} />
             )}
           </AnimatePresence>
 

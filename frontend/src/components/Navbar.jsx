@@ -14,6 +14,7 @@ const Navbar = ({ theme, toggleTheme }) => {
     { name: "Live Dashboard", path: "/dashboard" },
     { name: "Plan Health", path: "/plan-health" },
     { name: "What-If Analysis", path: "/what-if" },
+    { name: "Field Report", path: "/field-report" },
     { name: "Audit Log", path: "/audit-log" }
   ];
 
