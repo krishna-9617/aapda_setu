@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapView from '../components/MapView';
 import SolverStatusBadge from '../components/SolverStatusBadge';
 import EventControls from '../components/EventControls';
-import PlanHealthPanel from '../components/PlanHealthPanel';
 import { API_BASE_URL } from '../config';
 
 // Tilt card component for 3D effect
@@ -423,6 +423,7 @@ const Dashboard = () => {
   const [routesData, setRoutesData] = useState({});
   const [currentPlan, setCurrentPlan] = useState(null);
   const [selectedHab, setSelectedHab] = useState(null);
+  const [healthStatus, setHealthStatus] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState('dark');
   const [eventSummary, setEventSummary] = useState(null);
@@ -430,9 +431,7 @@ const Dashboard = () => {
   const [rejectToast, setRejectToast] = useState(false);
   const [planHistory, setPlanHistory] = useState([]);
   const [auditLog, setAuditLog] = useState([]);
-  const [showAuditLog, setShowAuditLog] = useState(false);
-
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (e) => {
       if (e.target.closest('.leaflet-marker-icon')) return;
       if (e.target.closest('.sidebar-container')) return;
@@ -447,6 +446,12 @@ const Dashboard = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (currentPlan) {
+      fetch(`${API_BASE_URL}/plans/health`).then(r => r.json()).then(d => setHealthStatus(d.status)).catch(console.error);
+    }
+  }, [currentPlan]);
 
   const fetchCurrentData = async () => {
     try {
@@ -746,62 +751,31 @@ const Dashboard = () => {
                     })}
                   </motion.div>
 
-                  <PlanHealthPanel currentPlan={currentPlan} onPlanUpdate={handlePlanUpdate} />
-                  <EventControls 
-                    onPlanUpdate={handlePlanUpdate} 
-                    sites={sites} 
-                    habitations={habitations} 
-                    routesData={routesData} 
-                  />
-                  <WhatIfControls key={currentPlan?.plan_id || 'default'} currentPlan={currentPlan} habitations={habitations} onPlanUpdate={handlePlanUpdate} />
-                  <Legend />
+                  {healthStatus && healthStatus !== 'HEALTHY' && (
+  <div style={{ marginTop: '20px', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', fontSize: '13px', fontWeight: 600 }}>
+      <span style={{ animation: 'unmet-pulse 1.5s infinite' }}>⚠️</span> Plan At Risk
+    </div>
+    <Link to="/plan-health" style={{ color: '#f87171', fontSize: '12px', textDecoration: 'underline' }}>View Details</Link>
+  </div>
+)}
 
-                  {/* PLAN HISTORY */}
-                  <div style={{ marginTop: '24px' }}>
-                    <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-strong)' }}>Plan History</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {planHistory.map((plan, idx) => {
-                        const isCurrent = currentPlan && plan.plan_id === currentPlan.plan_id;
-                        return (
-                          <div key={plan.plan_id} style={{
-                            padding: '12px',
-                            backgroundColor: 'var(--inner-bg)',
-                            border: `1px solid ${isCurrent ? '#10b981' : 'var(--panel-border-light)'}`,
-                            borderRadius: '12px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '4px'
-                          }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-light)' }}>
-                                {plan.trigger_event || 'Initial Baseline'}
-                              </span>
-                              {isCurrent && (
-                                <span style={{ fontSize: '10px', backgroundColor: 'rgba(16,185,129,0.2)', color: '#10b981', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
-                                  LIVE
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
-                              <span>{new Date(plan.timestamp).toLocaleTimeString()}</span>
-                              <span>Obj: {plan.objective?.toFixed(1)}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <button 
-                      onClick={() => setShowAuditLog(true)}
-                      style={{ marginTop: '12px', width: '100%', padding: '10px', backgroundColor: 'transparent', color: 'var(--text-strong)', border: '1px solid var(--panel-border-light)', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                    >
-                      <span>📋</span> View Audit Log
-                    </button>
+<EventControls onPlanUpdate={handlePlanUpdate} sites={sites} habitations={habitations} routesData={routesData} />
+<Legend />
+
+<div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+  <Link to="/plan-health" style={{ display: 'block', padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '8px', color: 'var(--text-light)', textDecoration: 'none', fontSize: '13px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>View Full Plan Health →</Link>
+  <Link to="/what-if" style={{ display: 'block', padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '8px', color: 'var(--text-light)', textDecoration: 'none', fontSize: '13px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>What-If Analysis →</Link>
+  <Link to="/audit-log" style={{ display: 'block', padding: '12px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '8px', color: 'var(--text-light)', textDecoration: 'none', fontSize: '13px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>System Audit Log →</Link>
+</div>
+
                   </div>
-                </div>
-              </TiltCard>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </TiltCard>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          
 
         {/* CENTER CONTENT */}
         <div style={{ flex: 1, position: 'relative', pointerEvents: 'none' }}>
@@ -1033,97 +1007,7 @@ const Dashboard = () => {
             )}
           </AnimatePresence>
 
-          {/* AUDIT LOG MODAL */}
-          <AnimatePresence>
-            {showAuditLog && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                  position: 'absolute',
-                  top: '10%',
-                  left: '10%',
-                  right: '10%',
-                  bottom: '10%',
-                  backgroundColor: 'var(--panel-bg)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid var(--panel-border)',
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-                  borderRadius: '16px',
-                  padding: '24px',
-                  zIndex: 3000,
-                  pointerEvents: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
-                  <h3 style={{ margin: 0, color: 'var(--text-light)' }}>System Audit Log</h3>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button 
-                      onClick={exportAuditLog}
-                      style={{ padding: '8px 16px', backgroundColor: 'transparent', color: '#38bdf8', border: '1px solid #38bdf8', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                    >
-                      Export JSON
-                    </button>
-                    <button 
-                      onClick={() => setShowAuditLog(false)}
-                      style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--text-light)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-                
-                <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px', color: 'var(--text-strong)' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Timestamp</th>
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Action Type</th>
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Description</th>
-                        <th style={{ padding: '12px 8px', fontWeight: 600 }}>Objective</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditLog.map((log, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                          <td style={{ padding: '12px 8px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                            {new Date(log.timestamp).toLocaleString()}
-                          </td>
-                          <td style={{ padding: '12px 8px' }}>
-                            <span style={{ 
-                              padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
-                              backgroundColor: log.action_type === 'plan_approved' ? 'rgba(16,185,129,0.15)' :
-                                               log.action_type === 'plan_rejected' ? 'rgba(239,68,68,0.15)' :
-                                               log.action_type === 'event_triggered' ? 'rgba(245,158,11,0.15)' :
-                                               'rgba(56,189,248,0.15)',
-                              color: log.action_type === 'plan_approved' ? '#10b981' :
-                                     log.action_type === 'plan_rejected' ? '#ef4444' :
-                                     log.action_type === 'event_triggered' ? '#f59e0b' :
-                                     '#38bdf8'
-                            }}>
-                              {log.action_type.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px 8px' }}>{log.description}</td>
-                          <td style={{ padding: '12px 8px', fontWeight: 600 }}>{log.objective ? log.objective.toFixed(1) : '-'}</td>
-                        </tr>
-                      ))}
-                      {auditLog.length === 0 && (
-                        <tr>
-                          <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>No audit logs recorded yet.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          
         </div>
 
         {/* RIGHT EXPLAINABILITY PANEL */}

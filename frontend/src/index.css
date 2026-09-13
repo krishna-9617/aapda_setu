@@ -1,247 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color-scheme: dark;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  --bg: #0b0f19;
-  --bg-grad: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #0d1322 100%);
-  --text: #f3f4f6;
-  --text-light: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-tertiary: #cbd5e1;
-  --text-strong: #e2e8f0;
-  --panel-bg: rgba(15, 23, 42, 0.75);
-  --panel-border: rgba(255, 255, 255, 0.12);
-  --panel-border-light: rgba(255, 255, 255, 0.1);
-  --item-border: rgba(255, 255, 255, 0.05);
-  --item-bg: rgba(255, 255, 255, 0.03);
-  --shadow: rgba(0, 0, 0, 0.6);
-  --shadow-light: rgba(0, 0, 0, 0.3);
-  --inner-bg: rgba(0, 0, 0, 0.2);
-  --btn-bg: rgba(255, 255, 255, 0.08);
-}
-
-.theme-light {
-  color-scheme: light;
-  --bg: #f8fafc;
-  --bg-grad: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
-  --text: #0f172a;
-  --text-light: #0f172a;
-  --text-muted: #475569;
-  --text-tertiary: #334155;
-  --text-strong: #1e293b;
-  --panel-bg: rgba(255, 255, 255, 0.75);
-  --panel-border: rgba(0, 0, 0, 0.08);
-  --panel-border-light: rgba(0, 0, 0, 0.04);
-  --item-border: rgba(0, 0, 0, 0.06);
-  --item-bg: rgba(0, 0, 0, 0.03);
-  --shadow: rgba(0, 0, 0, 0.12);
-  --shadow-light: rgba(0, 0, 0, 0.1);
-  --inner-bg: rgba(255, 255, 255, 0.5);
-  --btn-bg: rgba(0, 0, 0, 0.05);
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    --radius: 0.5rem;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background-color: var(--bg);
-  color: var(--text);
-}
-
-#root {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-/* Custom Scrollbar for Glass Panels */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.4);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Custom Leaflet Classes */
-.transparent-leaflet-icon {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Map Markers */
-.theme-dark .leaflet-tile-pane {
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-}
-
-@keyframes ping-ring {
-  0% { transform: scale(0.8); opacity: 0.8; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-
-.hab-marker {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-}
-
-.hab-marker .dot {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  position: absolute;
-  z-index: 2;
-}
-
-.hab-marker .ring {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  position: absolute;
-  z-index: 1;
-  animation: ping-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
-
-.pulse-critical .ring { animation-duration: 0.8s; }
-.pulse-high .ring { animation-duration: 1.2s; }
-.pulse-moderate .ring { animation-duration: 1.8s; }
-.pulse-low .ring { animation-duration: 2.5s; }
-
-.site-marker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--panel-bg);
-  border: 2px solid #38bdf8;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(56, 189, 248, 0.6);
-  backdrop-filter: blur(4px);
-  width: 20px !important;
-  height: 20px !important;
-}
-
-.site-marker svg {
-  width: 12px;
-  height: 12px;
-  fill: #38bdf8;
-  filter: drop-shadow(0 0 2px #38bdf8);
-}
-
-/* Assignment Lines */
-@keyframes flow-line {
-  to { stroke-dashoffset: -20; }
-}
-
-@keyframes fade-in-line {
-  from { opacity: 0; }
-  to { opacity: 0.85; }
-}
-
-.assignment-line {
-  animation: flow-line 0.8s linear infinite, fade-in-line 0.8s ease-out forwards;
-  stroke-linecap: round;
-  transition: stroke-width 0.3s ease;
-  opacity: 0; /* Starts hidden until fade-in kicks in */
-}
-
-.assignment-line:hover {
-  opacity: 1 !important;
-  stroke-width: 6 !important;
-  cursor: pointer;
-}
-
-
-.unmet-warning-ring {
-  position: absolute;
-  top: -8px; left: -8px; right: -8px; bottom: -8px;
-  border: 2px dashed #f59e0b;
-  border-radius: 50%;
-  animation: unmet-pulse 1.5s infinite;
-  pointer-events: none;
-}
-.unmet-warning-icon {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  font-size: 14px;
-  color: #f59e0b;
-  text-shadow: 0 0 4px rgba(0,0,0,0.8);
-  pointer-events: none;
-  z-index: 10;
-}
-@keyframes unmet-pulse {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(1.3); opacity: 0; }
-}
-.leaflet-tooltip.map-id-label {
-  background: rgba(15, 23, 42, 0.75);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 8.5px;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  pointer-events: none;
-  white-space: nowrap;
-}
-.leaflet-tooltip.map-id-label::before,
-.leaflet-tooltip.map-id-label::after {
-  display: none !important;
-}
-.leaflet-tooltip.route-label {
-  background: rgba(56, 189, 248, 0.85);
-  color: #0f172a;
-  border: 1px solid rgba(15, 23, 42, 0.3);
-}
-.route-chip-icon {
-  background: rgba(56, 189, 248, 0.85);
-  color: #0f172a;
-  border: 1px solid rgba(15, 23, 42, 0.3);
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 8.5px;
-  font-weight: 800;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  white-space: nowrap;
-  pointer-events: auto;
-}
-
-/* Global button states */
-button:not(:disabled):hover {
-  filter: brightness(1.2);
-  transition: filter 0.2s ease;
-}
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed !important;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
