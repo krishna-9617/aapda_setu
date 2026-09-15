@@ -2,6 +2,7 @@ import ApprovalModal from '../components/ApprovalModal';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import MeshBackground from '../components/MeshBackground';
 import MapView from '../components/MapView';
 import SolverStatusBadge from '../components/SolverStatusBadge';
 import EventControls from '../components/EventControls';

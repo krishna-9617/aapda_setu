@@ -3,7 +3,10 @@ import { motion } from "framer-motion";
 import { API_BASE_URL } from "../config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { MagicCard } from "@/components/ui/magic-card";
+import MeshBackground from "../components/MeshBackground";
 import { Download, FileText } from "lucide-react";
+
 
 const AuditLogPage = ({ theme }) => {
   const [auditLog, setAuditLog] = useState([]);
@@ -64,9 +67,10 @@ const AuditLogPage = ({ theme }) => {
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-md overflow-hidden shadow-2xl"
+          className="rounded-2xl overflow-hidden shadow-2xl"
         >
-          <div className="overflow-x-auto">
+          <MagicCard gradientColor="rgba(255,255,255,0.08)" className="border-white/10 bg-white/[0.02]">
+          <div className="overflow-x-auto relative z-10">
             <Table>
               <TableHeader className="bg-white/[0.02] border-b border-white/10">
                 <TableRow className="hover:bg-transparent">
@@ -94,11 +98,11 @@ const AuditLogPage = ({ theme }) => {
                       </TableCell>
                       <TableCell className="py-4 px-6">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                          {log.action}
+                          {log.action_type?.replace(/_/g, " ").toUpperCase()}
                         </span>
                       </TableCell>
                       <TableCell className="py-4 px-6 text-slate-300">
-                        {log.details}
+                        {log.description?.replace(/[^a-zA-Z0-9 :.,()-]/g, " ").replace(/\s+/g, " ").trim()}
                       </TableCell>
                       <TableCell className="py-4 px-6 text-right font-semibold text-cyan-400">
                         {log.objective ? log.objective.toFixed(1) : '-'}
@@ -109,6 +113,7 @@ const AuditLogPage = ({ theme }) => {
               </TableBody>
             </Table>
           </div>
+          </MagicCard>
         </motion.div>
       </div>
     </motion.div>

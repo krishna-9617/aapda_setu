@@ -20,7 +20,18 @@ const WhatIfPage = ({ theme }) => {
   // Resizable panel
   const [leftPct, setLeftPct] = useState(40);
   const containerRef = useRef(null);
+  const leftPanelRef = useRef(null);
   const isDragging = useRef(false);
+  const liveLeftPct = useRef(40);
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+  const staggerItem = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
 
   const startDrag = useCallback((e) => {
     e.preventDefault();
@@ -30,21 +41,23 @@ const WhatIfPage = ({ theme }) => {
   }, []);
 
   const stopDrag = useCallback(() => {
+    if (!isDragging.current) return;
     isDragging.current = false;
     document.body.style.userSelect = '';
     document.body.style.cursor = '';
+    setLeftPct(liveLeftPct.current);
   }, []);
 
   const onMouseMove = useCallback((e) => {
-    if (!isDragging.current || !containerRef.current) return;
+    if (!isDragging.current || !containerRef.current || !leftPanelRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const pct = Math.max(20, Math.min(75, (x / rect.width) * 100));
-    setLeftPct(pct);
+    const pct = Math.max(20, Math.min(75, ((e.clientX - rect.left) / rect.width) * 100));
+    liveLeftPct.current = pct;
+    leftPanelRef.current.style.width = pct + '%';
   }, []);
 
   useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('mouseup', stopDrag);
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
