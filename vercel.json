@@ -1,4 +1,4 @@
 {
-  "buildCommand": "cd frontend && PUPPETEER_SKIP_DOWNLOAD=true PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install && VITE_API_URL=https://aapda-setu-backend.onrender.com npm run build",
+  "buildCommand": "bash vercel-build.sh",
   "outputDirectory": "frontend/dist"
 }
