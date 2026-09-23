@@ -1,7 +1,12 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from typing import Optional
+import logging
 import os
 import uuid
 
@@ -10,9 +15,25 @@ from optimizer import build_and_solve
 from event_simulator import trigger_bridge_collapse, trigger_capacity_drop, compare_plans, trigger_rainfall_event
 from plan_health import calculate_plan_health
 
+# Log level is configurable so a demo can be run quietly and a debugging
+# session verbosely without editing code.
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger("aapda_setu.api")
+
 app = FastAPI(title="Aapda Setu Prototype API")
 
-# Configure CORS for local development and Vercel production deployment
+# Configure CORS for local development and Vercel production deployment.
+#
+# Bug fixed here: this used to compute a sensible localhost-only default list
+# and then ignore it - `allow_origins=allowed_origins if allowed_origins_env
+# else ["*"]` used the wildcard whenever ALLOWED_ORIGINS was unset, which is
+# the common case in local dev. Combined with allow_credentials=True, that
+# meant any origin could make a credentialed request against a locally-run
+# instance by default. The computed default list is now what actually reaches
+# the middleware.
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
 if allowed_origins_env:
     allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
@@ -26,12 +47,30 @@ else:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if allowed_origins_env else ["*"],
+    allow_origins=allowed_origins,
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    """
+    Return schema violations as flat 400s.
+
+    FastAPI's default is a 422 whose `detail` is a list of error objects. Every
+    hand-written error in this API returns a 400 with a `detail` string, and
+    the frontend reads `detail` as a string. Normalising here keeps one error
+    contract across the whole surface instead of two.
+    """
+    problems = "; ".join(
+        f"{'.'.join(str(part) for part in error['loc'][1:])}: {error['msg']}"
+        for error in exc.errors()
+    )
+    logger.warning("Rejected %s %s: %s", request.method, request.url.path, problems)
+    return JSONResponse(status_code=400, content={"detail": f"Invalid request - {problems}"})
+
 
 @app.get("/")
 def root_health_check():
@@ -40,51 +79,84 @@ def root_health_check():
 import copy
 import datetime
 
-# Global state
+
+def _utc_now_iso():
+    """Timezone-aware UTC timestamp. datetime.utcnow() is deprecated in 3.12."""
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+# Global state.
+#
+# habitations/sites/routes are populated once by _generate_baseline(), called
+# from the lifespan startup hook below - not here. This used to also do a full
+# load_data() + compute_classification_stability() pass at import time, then
+# _generate_baseline() repeated the exact same work on every startup: every
+# CSV/JSON read, every pickled ML model load, and the stability perturbation
+# check all ran twice, which is why two full sets of sklearn warnings used to
+# show up in the startup logs. Placeholders here; _generate_baseline() fills
+# them in exactly once.
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(current_dir, 'data')
 
 from sensitivity import compute_classification_stability
 
-habitations, sites, routes = load_data(data_dir)
-stability_map = compute_classification_stability(habitations)
-for hid, stab in stability_map.items():
-    habitations[hid]['classification_stability'] = stab
+habitations = {}
+sites = {}
+routes = {}
 current_plan = None
 pending_plan = None
 pending_data = None
 plan_history = []
 audit_log = []
 mock_alerts = []
-mock_alerts = []
+
+# ---------------------------------------------------------------------------
+# Request schemas
+#
+# Bounds live here rather than inside the handlers so that a malformed request
+# is rejected before any planning code runs, and so the constraint is visible
+# in the generated OpenAPI schema. Domain checks that need live state - does
+# this route_id exist? - stay in the handlers, since the schema cannot know.
+# ---------------------------------------------------------------------------
 
 class BridgeCollapseRequest(BaseModel):
-    route_id: str
+    route_id: str = Field(min_length=1, description="ID of the route to close")
+
 
 class CapacityDropRequest(BaseModel):
-    site_id: str
-    drop_percent: float = 0.5
+    site_id: str = Field(min_length=1, description="ID of the affected shelter site")
+    drop_percent: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="Fraction of water capacity lost, 0.0 to 1.0",
+    )
+
 
 class InterventionRequest(BaseModel):
-    type: str
-    site_id: str = None
-    resource_type: str = None
-    amount: int = None
-    habitation_id: str = None
+    type: str = Field(min_length=1, description="increase_capacity or open_route")
+    site_id: Optional[str] = Field(default=None, min_length=1)
+    resource_type: Optional[str] = Field(default=None, min_length=1)
+    amount: Optional[int] = Field(
+        default=None, gt=0, description="Units of capacity to add; must be positive",
+    )
+    habitation_id: Optional[str] = Field(default=None, min_length=1)
+
 
 class RainfallRequest(BaseModel):
-    intensity: float
+    intensity: float = Field(
+        ge=0.0, le=1.0, description="Rainfall intensity, 0.0 (none) to 1.0 (severe)",
+    )
+
 
 class FieldReportRequest(BaseModel):
-    incident_type: str
-    target_id: str
-    drop_percent: float = 0.5
-    reported_by: str = "Field Officer"
+    incident_type: str = Field(min_length=1, description="bridge_collapse or capacity_drop")
+    target_id: str = Field(min_length=1, description="Route or site the report concerns")
+    drop_percent: float = Field(default=0.5, ge=0.0, le=1.0)
+    reported_by: str = Field(default="Field Officer", min_length=1, max_length=120)
 
 def record_audit_log(action_type, description, objective=None):
     global audit_log
     entry = {
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": _utc_now_iso(),
         "action_type": action_type,
         "description": description,
         "objective": objective
@@ -98,7 +170,7 @@ def record_plan_in_history(plan, trigger_event=None):
         
     entry = {
         "plan_id": plan["plan_id"],
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "timestamp": _utc_now_iso(),
         "trigger_event": trigger_event,
         "objective": plan.get("objective"),
         "solver_status": plan.get("solver_status"),
@@ -117,14 +189,16 @@ def generate_mock_alerts(plan, habs, sts, rts):
         alerts.append({
             "to": h_name,
             "message": msg,
-            "timestamp": datetime.datetime.now().isoformat()
+            "timestamp": _utc_now_iso()
         })
     return alerts
 
 @app.get('/alerts/sent')
 def get_alerts_sent():
+    from sms import sms_backend_status
+
     return {
-        "status": "SIMULATED - not sent to real numbers",
+        "backend": sms_backend_status(),
         "alerts": mock_alerts
     }
 
@@ -156,13 +230,62 @@ def _generate_baseline():
     record_audit_log("baseline_generated", "Initial Baseline Generated", current_plan.get("objective"))
     return current_plan
 
-@app.on_event("startup")
-def startup_generate_baseline():
-    """Auto-generate a fresh baseline plan when the server starts."""
+@asynccontextmanager
+async def lifespan(_app):
+    """
+    Generate a fresh baseline plan when the server starts.
+
+    Replaces the deprecated @app.on_event("startup") hook. Nothing runs on
+    shutdown: all state is in memory and goes away with the process.
+    """
     _generate_baseline()
-    print(f"Baseline plan generated on startup: status={current_plan['solver_status']}, "
-          f"objective={current_plan.get('objective')}, "
-          f"assignments={len(current_plan['assignments'])}")
+    logger.info(
+        "Baseline plan generated on startup: status=%s objective=%s assignments=%d",
+        current_plan["solver_status"],
+        current_plan.get("objective"),
+        len(current_plan["assignments"]),
+    )
+    yield
+
+
+app.router.lifespan_context = lifespan
+
+@app.get("/system/modules")
+def get_system_modules():
+    """
+    Module overview cards for the landing page.
+
+    Every status value is computed from live state on each request. Modules
+    with nothing real to report return status_value=null, which the UI renders
+    as an em dash rather than a placeholder number.
+    """
+    from system_status import build_modules
+
+    health = None
+    if current_plan is not None:
+        try:
+            health = calculate_plan_health(current_plan, habitations, sites, routes)
+        except Exception as exc:  # noqa: BLE001 - one probe must not break the grid
+            logger.warning("Plan health probe failed: %s", exc)
+
+    modules = build_modules(
+        habitations=habitations,
+        sites=sites,
+        routes=routes,
+        current_plan=current_plan,
+        pending_plan=pending_plan,
+        plan_history=plan_history,
+        audit_log=audit_log,
+        health=health,
+    )
+
+    return {
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "module_count": len(modules),
+        "available_count": sum(1 for module in modules if module["available"]),
+        "modules": modules,
+    }
+
 
 @app.get("/habitations")
 def get_habitations():
@@ -175,6 +298,15 @@ def get_sites():
 @app.get("/routes")
 def get_routes():
     return routes
+
+@app.get("/system/context")
+def get_system_context():
+    import json
+    context_path = os.path.join(data_dir, "historical_context.json")
+    if os.path.exists(context_path):
+        with open(context_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
 
 @app.get("/plans/current")
 def get_current_plan():
@@ -367,7 +499,9 @@ def approve_plan(plan_id: str):
     record_audit_log("plan_approved", f"{trigger_event} - Approved", current_plan.get("objective"))
     
     global mock_alerts
-    new_alerts = generate_mock_alerts(current_plan, habitations, sites, routes)
+    from sms import dispatch_alerts
+
+    new_alerts = dispatch_alerts(generate_mock_alerts(current_plan, habitations, sites, routes))
     mock_alerts.extend(new_alerts)
     if len(mock_alerts) > 50:
         mock_alerts = mock_alerts[-50:]
@@ -659,9 +793,12 @@ def hazard_incident(req: FieldReportRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Incident report failed: {str(e)}")
 class WhatIfRequest(BaseModel):
-    population_multiplier: float = 1.0
-    target_habitation_id: Optional[str] = None
-    hazard_score: Optional[float] = None
+    population_multiplier: float = Field(
+        default=1.0, gt=0.0, le=100.0,
+        description="Scale factor applied to population; must be positive",
+    )
+    target_habitation_id: Optional[str] = Field(default=None, min_length=1)
+    hazard_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 @app.post("/plans/simulate")
 def simulate_plan(req: WhatIfRequest):
@@ -731,8 +868,8 @@ def simulate_plan(req: WhatIfRequest):
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 class ImplementWhatIfRequest(BaseModel):
-    simulated_pending_plan: dict
-    simulated_data: dict
+    simulated_pending_plan: dict = Field(description="Plan returned by /plans/simulate")
+    simulated_data: dict = Field(description="Scenario data returned by /plans/simulate")
 
 @app.post("/plans/implement-what-if")
 def implement_what_if(req: ImplementWhatIfRequest):

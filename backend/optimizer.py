@@ -186,7 +186,11 @@ def build_and_solve(habitations, sites, routes):
             model.Add(var == 0)
 
     # Objective: minimize weighted travel time + risk + distance + priority-weighted unmet demand
-    alpha, beta, gamma, lambda_0, eta = 1.0, 2.0, 0.5, 10.0, 1.5
+    # Weights: alpha=travel_time, beta=risk, gamma=distance, lambda_0=unmet penalty base, eta=priority multiplier
+    # lambda_0 must dominate the max possible route cost so the solver always prefers serving people.
+    # With real OSRM distances (max ~51 cost-units), lambda_0=100 gives min penalty ≈160 >> max cost.
+    alpha, beta, gamma, lambda_0, eta = 1.0, 2.0, 0.5, 100.0, 1.5
+
     terms = []
     for (i, j, k), var in x.items():
         cost = alpha * routes[k]["travel_time_min"] + beta * routes[k]["risk_score"] + gamma * routes[k]["distance_km"]

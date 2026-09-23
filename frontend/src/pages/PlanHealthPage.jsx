@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, ShieldCheck, Activity, ArrowRight, CheckCircle2, GripVertical } from "lucide-react";
+import Tilt3D from "../components/Tilt3D";
 import { API_BASE_URL } from "../config";
 import MapView from "../components/MapView";
 import ApprovalModal from "../components/ApprovalModal";
@@ -158,20 +159,33 @@ const PlanHealthPage = ({ theme }) => {
         <div ref={leftPanelRef} style={{ width: leftPct + '%' }} className="overflow-y-auto shrink-0 p-6 lg:p-8">
           <div className="relative z-10">
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center mb-10 text-center">
-              <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                  boxShadow: isHealthy
-                    ? ['0 0 0px rgba(16,185,129,0.2)', '0 0 30px rgba(16,185,129,0.4)', '0 0 0px rgba(16,185,129,0.2)']
-                    : ['0 0 0px rgba(239,68,68,0.2)', '0 0 30px rgba(239,68,68,0.5)', '0 0 0px rgba(239,68,68,0.2)']
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 border ${
-                  isHealthy ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
-                }`}
-              >
-                {isHealthy ? <ShieldCheck size={40} className="text-emerald-400" /> : <ShieldAlert size={40} className="text-red-400" />}
-              </motion.div>
+              {/* A genuine 3D sphere rather than a flat glowing ring: a
+                  radial highlight offset toward one corner (as if lit from
+                  above-left) gives it real curvature, and the whole thing
+                  tilts gently toward the cursor - more tactile than the
+                  original flat badge, per the brief's own suggestion for
+                  this exact element. */}
+              <Tilt3D strength={10} style={{ marginBottom: 24 }}>
+                <motion.div
+                  animate={{
+                    scale: [1, 1.05, 1],
+                    boxShadow: isHealthy
+                      ? ['0 0 0px rgba(16,185,129,0.2)', '0 0 30px rgba(16,185,129,0.4)', '0 0 0px rgba(16,185,129,0.2)']
+                      : ['0 0 0px rgba(239,68,68,0.2)', '0 0 30px rgba(239,68,68,0.5)', '0 0 0px rgba(239,68,68,0.2)']
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center border ${
+                    isHealthy ? 'border-emerald-500/30' : 'border-red-500/30'
+                  }`}
+                  style={{
+                    background: isHealthy
+                      ? 'radial-gradient(circle at 32% 28%, rgba(52,211,153,0.55), rgba(16,185,129,0.12) 60%, rgba(6,78,59,0.08) 100%)'
+                      : 'radial-gradient(circle at 32% 28%, rgba(248,113,113,0.55), rgba(239,68,68,0.12) 60%, rgba(69,10,10,0.08) 100%)',
+                  }}
+                >
+                  {isHealthy ? <ShieldCheck size={40} className="text-emerald-400" /> : <ShieldAlert size={40} className="text-red-400" />}
+                </motion.div>
+              </Tilt3D>
               <h1 className="text-3xl font-bold tracking-tight mb-3">
                 Plan Status: <span className={isHealthy ? "text-emerald-400" : "text-red-400"}>{healthData.status}</span>
               </h1>
@@ -197,7 +211,7 @@ const PlanHealthPage = ({ theme }) => {
                       <motion.div key={inv.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: idx * 0.08 }} className="rounded-xl overflow-hidden">
                         <MagicCard gradientColor="rgba(255,255,255,0.1)" className="p-5 bg-white/[0.03] border-white/10">
                           <div className="relative z-10">
-                            <h3 className="text-base font-semibold text-white mb-1">{inv.title}</h3>
+                            <h3 className="text-base font-semibold text-white light-text-strong mb-1">{inv.title}</h3>
                             <p className="text-sm text-slate-400 mb-3">{inv.description}</p>
                             <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-lg p-3 mb-4">
                               <p className="text-sm text-indigo-300 font-medium flex items-start gap-2">
@@ -234,7 +248,7 @@ const PlanHealthPage = ({ theme }) => {
         </div>
 
         <motion.div layoutId="live-map" className="flex-1 relative border-l border-white/10 min-w-0">
-          <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-slate-300">
+          <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-slate-300 light-chip">
             Live Plan View
           </div>
           <div className="w-full h-full min-h-[400px]">
@@ -246,7 +260,12 @@ const PlanHealthPage = ({ theme }) => {
       <div className="lg:hidden flex flex-col">
         <div className="overflow-y-auto p-6">
           <div className="flex flex-col items-center mb-8 text-center">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 border ${isHealthy ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 border ${isHealthy ? 'border-emerald-500/30' : 'border-red-500/30'}`}
+              style={{
+                background: isHealthy
+                  ? 'radial-gradient(circle at 32% 28%, rgba(52,211,153,0.55), rgba(16,185,129,0.12) 60%, rgba(6,78,59,0.08) 100%)'
+                  : 'radial-gradient(circle at 32% 28%, rgba(248,113,113,0.55), rgba(239,68,68,0.12) 60%, rgba(69,10,10,0.08) 100%)',
+              }}>
               {isHealthy ? <ShieldCheck size={32} className="text-emerald-400" /> : <ShieldAlert size={32} className="text-red-400" />}
             </div>
             <h1 className="text-2xl font-bold mb-2">Plan Status: <span className={isHealthy ? "text-emerald-400" : "text-red-400"}>{healthData.status}</span></h1>
@@ -254,7 +273,7 @@ const PlanHealthPage = ({ theme }) => {
           </div>
           {!isHealthy && healthData.interventions && healthData.interventions.map((inv, idx) => (
             <div key={inv.id} className="p-4 mb-3 rounded-xl bg-white/[0.03] border border-white/10">
-              <h3 className="font-semibold text-white mb-1">{inv.title}</h3>
+              <h3 className="font-semibold text-white light-text-strong mb-1">{inv.title}</h3>
               <p className="text-sm text-slate-400 mb-3">{inv.description}</p>
               <button onClick={() => handleApply(inv)} disabled={loading} className="w-full py-2 rounded-lg bg-indigo-600/80 text-white text-sm font-semibold">
                 Apply Intervention

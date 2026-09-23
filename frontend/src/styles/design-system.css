@@ -1,0 +1,431 @@
+/* ==========================================================================
+   Aapda Setu — shared design system
+   ==========================================================================
+
+   One place for the surfaces, spacing, type scale and motion that every page
+   uses, so "premium" means the same thing on the landing page as it does on
+   the audit log.
+
+   This layer sits on top of the theme variables already defined in index.css
+   (--bg, --text, --panel-bg, ...) rather than replacing them. Existing page
+   styles keep working untouched; pages opt in to the shared look by using
+   these classes.
+
+   Design direction
+   ----------------
+   Operations software for a disaster authority. Calm, dense, legible under
+   pressure. Depth comes from layered translucency and a single restrained
+   accent, not from saturated colour. Nothing pulses or animates unless it is
+   communicating live state, because motion that means nothing trains an
+   operator to ignore motion that does.
+   ========================================================================== */
+
+:root {
+  /* Compatibility bridge for vendored Aceternity/Magic UI components in
+     components/ui/ (magic-card.jsx and friends), which hardcode the
+     --color-background / --color-border names from the ui-ux-pro-max
+     convention. Kept as a two-line bridge rather than renaming every --as-*
+     token, and rather than editing the vendored components themselves. */
+  --color-background: #0f1729;
+  --color-border: var(--as-hairline-strong);
+
+  /* Accent ramp. Indigo carries interactive affordance; the hazard ramp is
+     reserved strictly for red-zone banding so colour never means two things. */
+  --as-accent: #6366f1;
+  --as-accent-soft: rgba(99, 102, 241, 0.14);
+  --as-accent-line: rgba(99, 102, 241, 0.32);
+  --as-accent-glow: rgba(99, 102, 241, 0.28);
+
+  --as-critical: #f43f5e;
+  --as-high: #fb923c;
+  --as-moderate: #facc15;
+  --as-low: #34d399;
+
+  /* Surfaces, layered from furthest to nearest. */
+  --as-surface-0: rgba(15, 23, 42, 0.42);
+  --as-surface-1: rgba(22, 30, 52, 0.62);
+  --as-surface-2: rgba(30, 41, 66, 0.78);
+  --as-hairline: rgba(255, 255, 255, 0.10);
+  --as-hairline-strong: rgba(255, 255, 255, 0.18);
+
+  /* Elevation. Two shadows only: resting and raised. */
+  --as-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.34);
+  --as-shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.36), 0 18px 48px rgba(0, 0, 0, 0.46);
+
+  /* Type scale, 1.25 ratio, clamped so it survives a projector and a laptop. */
+  --as-text-display: clamp(2.5rem, 5.5vw, 4.25rem);
+  --as-text-title: clamp(1.75rem, 3vw, 2.35rem);
+  --as-text-heading: 1.25rem;
+  --as-text-body: 0.9375rem;
+  --as-text-small: 0.8125rem;
+  --as-text-micro: 0.6875rem;
+
+  --as-radius-sm: 10px;
+  --as-radius: 16px;
+  --as-radius-lg: 22px;
+
+  --as-gutter: clamp(1rem, 4vw, 2rem);
+  --as-section-y: clamp(4rem, 9vw, 7.5rem);
+  --as-max-width: 1200px;
+
+  --as-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --as-duration: 220ms;
+}
+
+.theme-light {
+  --as-surface-0: rgba(255, 255, 255, 0.62);
+  --as-surface-1: rgba(255, 255, 255, 0.78);
+  --as-surface-2: rgba(255, 255, 255, 0.92);
+  --as-hairline: rgba(15, 23, 42, 0.09);
+  --as-hairline-strong: rgba(15, 23, 42, 0.16);
+  --as-accent-soft: rgba(99, 102, 241, 0.10);
+  --as-shadow-rest: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+  --as-shadow-raised: 0 2px 4px rgba(15, 23, 42, 0.08), 0 18px 48px rgba(15, 23, 42, 0.14);
+
+  /* MagicCard bridge (see :root): --color-background is hardcoded dark, which shows as a 1px
+     navy ring around every MagicCard in light mode. --color-border must be re-declared here so
+     var(--as-hairline-strong) resolves with the LIGHT value rather than the one inherited from :root. */
+  --color-background: #ffffff;
+  --color-border: var(--as-hairline-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+
+.as-section {
+  position: relative;
+  z-index: 10;
+  max-width: var(--as-max-width);
+  margin: 0 auto;
+  padding: var(--as-section-y) var(--as-gutter);
+}
+
+.as-section-head {
+  max-width: 44rem;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+  text-align: center;
+}
+
+.as-grid {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(clamp(260px, 26vw, 320px), 1fr));
+}
+
+/* --------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+
+.as-eyebrow {
+  font-size: var(--as-text-micro);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--as-accent);
+}
+
+.as-display {
+  font-size: var(--as-text-display);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.04;
+  margin: 0;
+  color: var(--text-light);
+}
+
+.as-title {
+  font-size: var(--as-text-title);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.16;
+  margin: 0 0 0.75rem;
+  color: var(--text-light);
+}
+
+.as-heading {
+  font-size: var(--as-text-heading);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--text-light);
+}
+
+.as-body {
+  font-size: var(--as-text-body);
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.as-small {
+  font-size: var(--as-text-small);
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Tabular figures for anything an operator compares down a column. */
+.as-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+.as-gradient-text {
+  background: linear-gradient(135deg, var(--as-accent) 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces
+   -------------------------------------------------------------------------- */
+
+.as-glass {
+  position: relative;
+  background: var(--as-surface-1);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--as-hairline);
+  border-radius: var(--as-radius);
+  box-shadow: var(--as-shadow-rest);
+  transition: border-color var(--as-duration) var(--as-ease),
+              box-shadow var(--as-duration) var(--as-ease),
+              transform var(--as-duration) var(--as-ease);
+}
+
+/* A one-pixel highlight along the top edge. This is what reads as "glass"
+   rather than "translucent rectangle" — it mimics light catching an edge. */
+.as-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--as-hairline-strong) 22%,
+    var(--as-hairline-strong) 78%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.as-glass-quiet {
+  background: var(--as-surface-0);
+}
+
+.as-glass-solid {
+  background: var(--as-surface-2);
+}
+
+.as-interactive {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.as-interactive:hover {
+  border-color: var(--as-accent-line);
+  box-shadow: var(--as-shadow-raised);
+  transform: translateY(-2px);
+}
+
+.as-interactive:focus-visible {
+  outline: 2px solid var(--as-accent);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Components
+   -------------------------------------------------------------------------- */
+
+.as-icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--as-radius-sm);
+  background: var(--as-accent-soft);
+  border: 1px solid var(--as-accent-line);
+  color: var(--as-accent);
+  flex: none;
+}
+
+.as-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: var(--as-text-micro);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--as-hairline);
+  background: var(--as-surface-0);
+  color: var(--text-muted);
+}
+
+.as-chip-live {
+  border-color: var(--as-accent-line);
+  background: var(--as-accent-soft);
+  color: var(--as-accent);
+}
+
+/* Additive modifier: pass any colour via --as-chip-tint on the element (e.g.
+   style={{'--as-chip-tint': '#f59e0b'}}) and combine with .as-chip to get a
+   uniquely-coloured status chip - used for per-action-type badges in the
+   audit timeline. Layers on top of .as-chip rather than replacing it, so
+   every plain .as-chip usage elsewhere is completely unaffected. */
+.as-chip-tint {
+  border-color: color-mix(in srgb, var(--as-chip-tint, var(--as-accent)) 35%, transparent);
+  background: color-mix(in srgb, var(--as-chip-tint, var(--as-accent)) 16%, transparent);
+  color: var(--as-chip-tint, var(--as-accent));
+}
+
+/* Additive modifier for .as-icon-tile, same pattern via --as-icon-tint. */
+.as-icon-tile-tint {
+  background: color-mix(in srgb, var(--as-icon-tint, var(--as-accent)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--as-icon-tint, var(--as-accent)) 32%, transparent);
+  color: var(--as-icon-tint, var(--as-accent));
+}
+
+/* Light theme: the tint colours are neon shades chosen for dark surfaces (1.7-2.4:1 as text on their
+   own chip). Darken only the text/glyph (45% tint + 55% ink = 5.6-8.2:1); fills and borders unchanged. */
+.theme-light .as-chip-tint { color: color-mix(in srgb, var(--as-chip-tint, var(--as-accent)) 45%, #0f172a); }
+.theme-light .as-icon-tile-tint { color: color-mix(in srgb, var(--as-icon-tint, var(--as-accent)) 45%, #0f172a); }
+
+/* Brand indigo #6366f1 as SMALL TEXT measures 3.9-4.4:1 on light surfaces. Use indigo-600 (#4f46e5, >= 5.4:1)
+   for the text only; fills, borders and glows keep the brand token. */
+.theme-light .as-eyebrow, .theme-light .as-chip-live { color: #4f46e5; }
+/* Two elements are dimmed with inline opacity: 0.6, which drops them to ~2.3-2.9:1. Marker classes let light theme relax it. */
+.theme-light .as-step-number { color: #4f46e5 !important; opacity: 0.85 !important; }
+.theme-light .as-chip-muted  { opacity: 0.85 !important; }
+.theme-light .as-dim-relax   { opacity: 1; } /* was opacity-70: 3.0-3.4:1 on light */
+
+.as-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* Reserved for genuinely live state. Never decorative. */
+.as-dot-live {
+  animation: as-breathe 2.4s var(--as-ease) infinite;
+}
+
+@keyframes as-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+
+/* Value that the backend could not compute. Rendered as an em dash, never as
+   a zero or a plausible-looking placeholder. */
+.as-unavailable {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.as-divider {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: linear-gradient(90deg, transparent, var(--as-hairline), transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Skeletons — shown while live values are still loading, so a card never
+   briefly displays a wrong number before the real one arrives.
+   -------------------------------------------------------------------------- */
+
+.as-skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--as-surface-0) 0%,
+    var(--as-hairline) 50%,
+    var(--as-surface-0) 100%
+  );
+  background-size: 200% 100%;
+  animation: as-shimmer 1.4s linear infinite;
+}
+
+@keyframes as-shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Ambient background — a slow, low-contrast field. Deliberately subtle: this
+   sits behind operational data and must never compete with it for attention.
+   -------------------------------------------------------------------------- */
+
+.as-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.as-ambient::before,
+.as-ambient::after {
+  content: "";
+  position: absolute;
+  width: 46rem;
+  height: 46rem;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.30;
+}
+
+.as-ambient::before {
+  top: -16rem;
+  left: -12rem;
+  background: radial-gradient(circle, var(--as-accent-glow) 0%, transparent 68%);
+  animation: as-drift-a 34s ease-in-out infinite alternate;
+}
+
+.as-ambient::after {
+  bottom: -20rem;
+  right: -14rem;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.20) 0%, transparent 68%);
+  animation: as-drift-b 42s ease-in-out infinite alternate;
+}
+
+.theme-light .as-ambient::before,
+.theme-light .as-ambient::after {
+  opacity: 0.20;
+}
+
+@keyframes as-drift-a {
+  to { transform: translate3d(7rem, 5rem, 0) scale(1.14); }
+}
+
+@keyframes as-drift-b {
+  to { transform: translate3d(-6rem, -5rem, 0) scale(1.1); }
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

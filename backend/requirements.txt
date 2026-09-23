@@ -1,28 +1,53 @@
-absl-py==2.5.0
-annotated-doc==0.0.5
-annotated-types==0.8.0
-anyio==4.15.1
-certifi==2026.7.22
-click==8.5.0
-fastapi==0.141.1
-geopandas==1.1.4
-h11==0.16.0
-idna==3.19
-immutabledict==4.3.1
-numpy==2.5.3
-ortools==9.15.6755
-packaging==26.3
-pandas==3.0.5
-protobuf==6.33.6
-pydantic==2.13.5
-pydantic_core==2.46.5
-pyogrio==0.13.0
-pyproj==3.8.0
-python-dateutil==2.9.0.post0
-shapely==2.1.2
-six==1.17.0
-starlette==1.6.0
-typing-inspection==0.4.4
-typing_extensions==4.16.0
-tzdata==2026.3
-uvicorn==0.52.4
+# Aapda Setu backend dependencies.
+# Every version pinned exactly: a hackathon demo must not break because
+# a transitive release landed the morning of the evaluation.
+# Regenerate with: pip freeze > requirements.lock.txt
+
+# Core API
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+
+# Demo SMS dispatch (backend/sms.py) - optional at runtime; falls back to
+# simulated alerts when Twilio credentials aren't configured, but the
+# package itself must be installed for that fallback check to run cleanly.
+twilio==9.11.1
+pydantic-core==2.46.5
+starlette==1.6.0
+anyio==4.15.1
+h11==0.16.0
+click==8.3.1
+
+# Optimisation
+ortools==9.15.6755
+protobuf==6.33.6
+absl-py==2.4.0
+immutabledict==4.3.1
+
+# Data
+pandas==3.0.2
+numpy==2.4.4
+python-dateutil==2.9.0.post0
+six==1.17.0
+
+# Geospatial - hazard derivation and road routing
+rasterio==1.5.1
+shapely==2.1.2
+pyproj==3.8.0
+osmnx==2.1.1
+networkx==3.6.1
+geopandas==1.1.4
+pyogrio==0.13.0
+affine==3.0.1
+
+# ML susceptibility models
+scikit-learn==1.8.0
+joblib==1.5.3
+scipy==1.17.1
+threadpoolctl==3.6.0
+
+# Testing
+pytest==9.1.1
+httpx==0.28.1
+certifi==2026.2.25
+idna==3.11

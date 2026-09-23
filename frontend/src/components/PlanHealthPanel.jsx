@@ -68,7 +68,7 @@ const PlanHealthPanel = ({ currentPlan, onPlanUpdate }) => {
 
       {!isHealthy && (
         <div style={{ marginBottom: "16px", fontSize: "13px", color: "var(--text-light)" }}>
-          The current plan has <strong style={{ color: "#ef4444" }}>{healthData.unmet_demand_total} unmet demand</strong>. 
+          The current plan has <strong style={{ color: "var(--ink-red-500)" }}>{healthData.unmet_demand_total} unmet demand</strong>. 
           Optimization fell back to heuristic mode or constraints were relaxed.
         </div>
       )}
@@ -100,7 +100,7 @@ const PlanHealthPanel = ({ currentPlan, onPlanUpdate }) => {
               >
                 <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--text-strong)" }}>{inv.title}</div>
                 <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{inv.description}</div>
-                <div style={{ fontSize: "11px", color: "#38bdf8", fontWeight: 600 }}>{inv.impact}</div>
+                <div style={{ fontSize: "11px", color: "var(--ink-sky)", fontWeight: 600 }}>{inv.impact}</div>
                 <button
                   onClick={() => handleApply(inv)}
                   disabled={loading}
@@ -109,7 +109,7 @@ const PlanHealthPanel = ({ currentPlan, onPlanUpdate }) => {
                     padding: "6px",
                     backgroundColor: "rgba(56, 189, 248, 0.1)",
                     border: "1px solid rgba(56, 189, 248, 0.4)",
-                    color: "#38bdf8",
+                    color: "var(--ink-sky)",
                     borderRadius: "6px",
                     fontWeight: 600,
                     cursor: loading ? "not-allowed" : "pointer",

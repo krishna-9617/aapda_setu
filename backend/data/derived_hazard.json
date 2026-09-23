@@ -1,0 +1,341 @@
+{
+  "generated_at": "2026-09-23T12:00:06.669138+00:00",
+  "district": "Barpeta, Assam",
+  "pipeline_version": 1,
+  "inputs": {
+    "dem": {
+      "available": true,
+      "note": "SRTM/NASADEM GeoTIFF cached by geo.fetch_dem"
+    },
+    "hydrography": {
+      "available": true,
+      "source": "Natural Earth 10m rivers + lake centrelines",
+      "fidelity": "generalised_1_10m_cartographic",
+      "feature_count": 2,
+      "measured_in": "EPSG:32646",
+      "positional_uncertainty_note": "Distances inherit the positional error of the source layer. Natural Earth 10m generalisation displaces channels by roughly 1-3 km; OSM surveyed centrelines are typically within tens of metres."
+    }
+  },
+  "model_constants": {
+    "flood_proximity_decay_m": 15000.0,
+    "flood_proximity_decay_surveyed_m": 3000.0,
+    "flood_proximity_decay_generalised_m": 15000.0,
+    "hand_ceiling_m": 12.0,
+    "flat_slope_deg": 1.0,
+    "steep_slope_deg": 8.0,
+    "landslide_min_slope_deg": 10.0,
+    "landslide_sat_slope_deg": 35.0,
+    "flood_weights": {
+      "flood_proximity": 0.5,
+      "flood_lowlying": 0.35,
+      "flood_flatness": 0.15
+    },
+    "landslide_weights": {
+      "landslide_slope": 1.0
+    }
+  },
+  "fallback_count": 0,
+  "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation.",
+  "habitations": {
+    "BRP-001": {
+      "habitation_id": "BRP-001",
+      "name": "Ambari",
+      "flood_score": 0.4978,
+      "landslide_score": 0.0,
+      "hazard_score": 0.4978,
+      "dominant_hazard": "flood",
+      "priority_score": 0.6489,
+      "red_zone_band": "high",
+      "flood_score_source": "derived",
+      "landslide_score_source": "derived",
+      "hazard_score_source": "derived",
+      "previous_csv_values": {
+        "hazard_score": 0.9,
+        "flood_score": 0.9,
+        "landslide_score": 0.2
+      },
+      "provenance": {
+        "flood": {
+          "terms": {
+            "flood_proximity": 0.3343,
+            "flood_lowlying": 0.5976,
+            "flood_flatness": 0.81
+          },
+          "effective_weights": {
+            "flood_proximity": 0.5,
+            "flood_lowlying": 0.35,
+            "flood_flatness": 0.15
+          },
+          "signals_used": [
+            "flood_flatness",
+            "flood_lowlying",
+            "flood_proximity"
+          ],
+          "signals_missing": []
+        },
+        "landslide": {
+          "terms": {
+            "landslide_slope": 0.0
+          },
+          "effective_weights": {
+            "landslide_slope": 1.0
+          },
+          "signals_used": [
+            "landslide_slope"
+          ],
+          "signals_missing": []
+        },
+        "raw_measurements": {
+          "slope_deg": 2.33,
+          "elev_rel_drainage_m": 4.83,
+          "elevation_m": 42.99,
+          "distance_to_water_m": 16436.8,
+          "nearest_waterway": "Brahmaputra"
+        },
+        "proximity_decay_m": 15000.0,
+        "unavailable": [],
+        "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation."
+      }
+    },
+    "BRP-002": {
+      "habitation_id": "BRP-002",
+      "name": "Howly",
+      "flood_score": 0.6573,
+      "landslide_score": 0.0,
+      "hazard_score": 0.6573,
+      "dominant_hazard": "flood",
+      "priority_score": 0.5287,
+      "red_zone_band": "moderate",
+      "flood_score_source": "derived",
+      "landslide_score_source": "derived",
+      "hazard_score_source": "derived",
+      "previous_csv_values": {
+        "hazard_score": 0.8,
+        "flood_score": 0.3,
+        "landslide_score": 0.8
+      },
+      "provenance": {
+        "flood": {
+          "terms": {
+            "flood_proximity": 0.466,
+            "flood_lowlying": 0.8146,
+            "flood_flatness": 0.9278
+          },
+          "effective_weights": {
+            "flood_proximity": 0.5,
+            "flood_lowlying": 0.35,
+            "flood_flatness": 0.15
+          },
+          "signals_used": [
+            "flood_flatness",
+            "flood_lowlying",
+            "flood_proximity"
+          ],
+          "signals_missing": []
+        },
+        "landslide": {
+          "terms": {
+            "landslide_slope": 0.0
+          },
+          "effective_weights": {
+            "landslide_slope": 1.0
+          },
+          "signals_used": [
+            "landslide_slope"
+          ],
+          "signals_missing": []
+        },
+        "raw_measurements": {
+          "slope_deg": 1.505,
+          "elev_rel_drainage_m": 2.23,
+          "elevation_m": 44.71,
+          "distance_to_water_m": 11452.2,
+          "nearest_waterway": "Manas"
+        },
+        "proximity_decay_m": 15000.0,
+        "unavailable": [],
+        "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation."
+      }
+    },
+    "BRP-003": {
+      "habitation_id": "BRP-003",
+      "name": "Fulkipara",
+      "flood_score": 0.5716,
+      "landslide_score": 0.0,
+      "hazard_score": 0.5716,
+      "dominant_hazard": "flood",
+      "priority_score": 0.7358,
+      "red_zone_band": "high",
+      "flood_score_source": "derived",
+      "landslide_score_source": "derived",
+      "hazard_score_source": "derived",
+      "previous_csv_values": {
+        "hazard_score": 0.8,
+        "flood_score": 0.8,
+        "landslide_score": 0.1
+      },
+      "provenance": {
+        "flood": {
+          "terms": {
+            "flood_proximity": 0.3861,
+            "flood_lowlying": 0.6532,
+            "flood_flatness": 1.0
+          },
+          "effective_weights": {
+            "flood_proximity": 0.5,
+            "flood_lowlying": 0.35,
+            "flood_flatness": 0.15
+          },
+          "signals_used": [
+            "flood_flatness",
+            "flood_lowlying",
+            "flood_proximity"
+          ],
+          "signals_missing": []
+        },
+        "landslide": {
+          "terms": {
+            "landslide_slope": 0.0
+          },
+          "effective_weights": {
+            "landslide_slope": 1.0
+          },
+          "signals_used": [
+            "landslide_slope"
+          ],
+          "signals_missing": []
+        },
+        "raw_measurements": {
+          "slope_deg": 0.859,
+          "elev_rel_drainage_m": 4.16,
+          "elevation_m": 40.77,
+          "distance_to_water_m": 14276.1,
+          "nearest_waterway": "Brahmaputra"
+        },
+        "proximity_decay_m": 15000.0,
+        "unavailable": [],
+        "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation."
+      }
+    },
+    "BRP-004": {
+      "habitation_id": "BRP-004",
+      "name": "Baghbar",
+      "flood_score": 0.3489,
+      "landslide_score": 0.0,
+      "hazard_score": 0.3489,
+      "dominant_hazard": "flood",
+      "priority_score": 0.3745,
+      "red_zone_band": "low",
+      "flood_score_source": "derived",
+      "landslide_score_source": "derived",
+      "hazard_score_source": "derived",
+      "previous_csv_values": {
+        "hazard_score": 0.6,
+        "flood_score": 0.2,
+        "landslide_score": 0.6
+      },
+      "provenance": {
+        "flood": {
+          "terms": {
+            "flood_proximity": 0.5775,
+            "flood_lowlying": 0.0283,
+            "flood_flatness": 0.335
+          },
+          "effective_weights": {
+            "flood_proximity": 0.5,
+            "flood_lowlying": 0.35,
+            "flood_flatness": 0.15
+          },
+          "signals_used": [
+            "flood_flatness",
+            "flood_lowlying",
+            "flood_proximity"
+          ],
+          "signals_missing": []
+        },
+        "landslide": {
+          "terms": {
+            "landslide_slope": 0.0
+          },
+          "effective_weights": {
+            "landslide_slope": 1.0
+          },
+          "signals_used": [
+            "landslide_slope"
+          ],
+          "signals_missing": []
+        },
+        "raw_measurements": {
+          "slope_deg": 5.655,
+          "elev_rel_drainage_m": 11.66,
+          "elevation_m": 42.66,
+          "distance_to_water_m": 8236.1,
+          "nearest_waterway": "Brahmaputra"
+        },
+        "proximity_decay_m": 15000.0,
+        "unavailable": [],
+        "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation."
+      }
+    },
+    "BRP-005": {
+      "habitation_id": "BRP-005",
+      "name": "Kalgachia",
+      "flood_score": 0.8535,
+      "landslide_score": 0.0,
+      "hazard_score": 0.8535,
+      "dominant_hazard": "flood",
+      "priority_score": 0.5268,
+      "red_zone_band": "moderate",
+      "flood_score_source": "derived",
+      "landslide_score_source": "derived",
+      "hazard_score_source": "derived",
+      "previous_csv_values": {
+        "hazard_score": 0.3,
+        "flood_score": 0.3,
+        "landslide_score": 0.0
+      },
+      "provenance": {
+        "flood": {
+          "terms": {
+            "flood_proximity": 0.794,
+            "flood_lowlying": 0.8756,
+            "flood_flatness": 1.0
+          },
+          "effective_weights": {
+            "flood_proximity": 0.5,
+            "flood_lowlying": 0.35,
+            "flood_flatness": 0.15
+          },
+          "signals_used": [
+            "flood_flatness",
+            "flood_lowlying",
+            "flood_proximity"
+          ],
+          "signals_missing": []
+        },
+        "landslide": {
+          "terms": {
+            "landslide_slope": 0.0
+          },
+          "effective_weights": {
+            "landslide_slope": 1.0
+          },
+          "signals_used": [
+            "landslide_slope"
+          ],
+          "signals_missing": []
+        },
+        "raw_measurements": {
+          "slope_deg": 0.782,
+          "elev_rel_drainage_m": 1.49,
+          "elevation_m": 39.27,
+          "distance_to_water_m": 3460.2,
+          "nearest_waterway": "Manas"
+        },
+        "proximity_decay_m": 15000.0,
+        "unavailable": [],
+        "non_claims_note": "This score reflects relative physical exposure patterns, not a certified probability of flooding or landslide. It is not a hydraulic model output, not a return period, and not a substitute for official CWC/ASDMA hazard zonation."
+      }
+    }
+  }
+}

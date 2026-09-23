@@ -130,7 +130,7 @@ const EventControls = ({ onPlanUpdate, sites = {}, habitations = {}, routesData 
       <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Field Incident Reporting</h4>
       
       {errorMsg && (
-        <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', borderRadius: '8px', fontSize: '12px' }}>
+        <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: 'var(--ink-red-300)', borderRadius: '8px', fontSize: '12px' }}>
           <strong>Error:</strong> {errorMsg}
         </div>
       )}
@@ -153,17 +153,17 @@ const EventControls = ({ onPlanUpdate, sites = {}, habitations = {}, routesData 
           <motion.button 
             whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}
             disabled={loading} onClick={() => handleRainfallEvent(0.3)}
-            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #38bdf8', color: 'var(--ink-sky)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
           >Light (0.3)</motion.button>
           <motion.button 
             whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}
             disabled={loading} onClick={() => handleRainfallEvent(0.6)}
-            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #f59e0b', color: '#f59e0b', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #f59e0b', color: 'var(--ink-amber)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
           >Mod (0.6)</motion.button>
           <motion.button 
             whileHover={{ scale: loading ? 1 : 1.05 }} whileTap={{ scale: loading ? 1 : 0.95 }}
             disabled={loading} onClick={() => handleRainfallEvent(0.9)}
-            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{ flex: 1, padding: '8px', backgroundColor: 'var(--btn-bg)', border: '1px solid #ef4444', color: 'var(--ink-red-500)', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
           >Severe (0.9)</motion.button>
         </div>
       </div>

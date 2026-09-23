@@ -118,7 +118,7 @@ export function MagicCard(props) {
   return (
     <motion.div
       className={cn(
-        "group relative isolate overflow-hidden rounded-[inherit] border border-transparent",
+        "as-magic-card group relative isolate overflow-hidden rounded-[inherit] border border-transparent",
         className
       )}
       onPointerMove={handlePointerMove}

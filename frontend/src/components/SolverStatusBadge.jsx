@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useSpring, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL } from '../config';
+import Tilt3D from './Tilt3D';
 
 function AnimatedValue({ value, decimals = 0, prefix = "", suffix = "" }) {
   const spring = useSpring(value || 0, { mass: 0.8, stiffness: 75, damping: 15 });
@@ -34,7 +36,7 @@ const SolverStatusBadge = ({ plan }) => {
 
   useEffect(() => {
     if (showTooltip && !comparisonData) {
-      fetch('http://127.0.0.1:8000/plans/comparison')
+      fetch(`${API_BASE_URL}/plans/comparison`)
         .then(res => res.json())
         .then(data => setComparisonData(data))
         .catch(err => console.error("Failed to fetch comparison", err));
@@ -54,9 +56,7 @@ const SolverStatusBadge = ({ plan }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: 'absolute',
-        top: 20,
-        right: 20,
+        position: 'relative',
         backgroundColor: 'var(--panel-bg)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
@@ -105,26 +105,26 @@ const SolverStatusBadge = ({ plan }) => {
                   <div style={{ position: 'relative', zIndex: 1 }}>
                     <p style={{ margin: '0 0 12px 0' }}>This uses Google OR-Tools CP-SAT, a constraint optimization solver. It finds the assignment of habitations to shelters that minimizes total travel time, risk, and unmet demand - while respecting hard capacity constraints.</p>
                     
-                    <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#38bdf8' }}>Why CP-SAT?</h4>
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--ink-sky)' }}>Why CP-SAT?</h4>
                     {comparisonData ? (
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
                         <thead>
                           <tr style={{ borderBottom: '1px solid var(--panel-border-light)' }}>
                             <th style={{ padding: '6px 4px', color: 'var(--text-muted)', fontWeight: 600 }}>Metric</th>
                             <th style={{ padding: '6px 4px', color: 'var(--text-muted)', fontWeight: 600 }}>Naive Nearest</th>
-                            <th style={{ padding: '6px 4px', color: '#10b981', fontWeight: 600 }}>Aapda Setu (CP-SAT)</th>
+                            <th style={{ padding: '6px 4px', color: 'var(--ink-emerald-500)', fontWeight: 600 }}>Aapda Setu (CP-SAT)</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                             <td style={{ padding: '6px 4px' }}>Unmet Population</td>
-                            <td style={{ padding: '6px 4px', color: '#ef4444' }}>{comparisonData.naive.unmet_demand}</td>
-                            <td style={{ padding: '6px 4px', color: '#10b981', fontWeight: 'bold' }}>{comparisonData.cpsat.unmet_demand}</td>
+                            <td style={{ padding: '6px 4px', color: 'var(--ink-red-500)' }}>{comparisonData.naive.unmet_demand}</td>
+                            <td style={{ padding: '6px 4px', color: 'var(--ink-emerald-500)', fontWeight: 'bold' }}>{comparisonData.cpsat.unmet_demand}</td>
                           </tr>
                           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                             <td style={{ padding: '6px 4px' }}>Sites Over Capacity</td>
-                            <td style={{ padding: '6px 4px', color: '#ef4444' }}>{comparisonData.naive.over_capacity_count}</td>
-                            <td style={{ padding: '6px 4px', color: '#10b981', fontWeight: 'bold' }}>{comparisonData.cpsat.over_capacity_count}</td>
+                            <td style={{ padding: '6px 4px', color: 'var(--ink-red-500)' }}>{comparisonData.naive.over_capacity_count}</td>
+                            <td style={{ padding: '6px 4px', color: 'var(--ink-emerald-500)', fontWeight: 'bold' }}>{comparisonData.cpsat.over_capacity_count}</td>
                           </tr>
                           <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                             <td style={{ padding: '6px 4px' }}>Avg Travel Time</td>
@@ -195,7 +195,7 @@ const SolverStatusBadge = ({ plan }) => {
         {plan.solver_status}, gap {Math.round(plan.solver_gap_percent || 0)}%, {(plan.solver_time_sec || 0).toFixed(1)}s
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+      <Tilt3D strength={5} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
         <div>
           <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>
             Solve Time
@@ -210,12 +210,12 @@ const SolverStatusBadge = ({ plan }) => {
             <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>
               Objective
             </div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#38bdf8', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink-sky)', marginTop: '2px' }}>
               <AnimatedValue value={plan.objective} decimals={1} />
             </div>
           </div>
         )}
-      </div>
+      </Tilt3D>
 
       <style>{`
         @keyframes ping {

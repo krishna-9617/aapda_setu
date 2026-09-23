@@ -1,6 +1,6 @@
 habitation_id,name,lat,lon,population,critical_care_population,vulnerability_score,flood_score,landslide_score,hazard_score,dominant_hazard,priority_score,red_zone_band,road_transit_fraction,data_source,notes
-BRP-001,Ambari,26.328,91.008,1200,120,0.8,0.9,0.2,0.9,flood,0.85,critical,0.8,estimated,Manually jittered fallback coords. Population/scores estimated.
-BRP-002,Howly,26.4249628,90.9712027,800,80,0.4,0.3,0.8,0.8,landslide,0.6,high,0.5,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
-BRP-003,Fulkipara,26.312,91.021,2500,250,0.9,0.8,0.1,0.8,flood,0.85,critical,0.9,estimated,Manually jittered fallback coords. Population/scores estimated.
-BRP-004,Baghbar,26.2174401,90.8494019,1500,150,0.4,0.2,0.6,0.6,landslide,0.5,moderate,0.4,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
-BRP-005,Kalgachia,26.3124972,90.8269282,600,60,0.2,0.3,0.0,0.3,flood,0.25,low,0.7,estimated,Coords from OpenStreetMap/approximated. Population/scores estimated.
+BRP-001,Ambari,26.328,91.008,553,120,0.8,0.9,0.2,0.9,flood,0.85,critical,0.8,"Census of India 2011 (LGD code 283013, Ambari village, Barpeta sub-division)","Census 2011 total population: 553 (283M + 270F), 109 households."
+BRP-002,Howly,26.4249628,90.9712027,800,80,0.4,0.3,0.8,0.8,landslide,0.6,high,0.5,OSM/Nominatim,"OSM/Nominatim: type=town, Barpeta district. Coordinates already in habitations.csv. Coords unchanged (already matched)."
+BRP-003,Fulkipara,26.312,91.021,1381,250,0.9,0.8,0.1,0.8,flood,0.85,critical,0.9,"Census of India 2011 (LGD code 283012, Phulkipara village, Barpeta sub-division)","Census 2011 total population: 1,381 (720M + 661F), 265 households. ""Phulkipara"" is the correct Census spelling of ""Fulkipara""."
+BRP-004,Baghbar,26.2174401,90.8494019,1225,150,0.4,0.2,0.6,0.6,landslide,0.5,moderate,0.4,"Census of India 2011 (Baghbar Gaon village, Barpeta district, Assam)","Census 2011 total population: 1,225. OSM name: Baghbor."
+BRP-005,Kalgachia,26.3124972,90.8269282,6304,60,0.2,0.3,0.0,0.3,flood,0.25,low,0.7,"Census of India 2011 (Kalgachia village, Barpeta district, Assam)","Census 2011 total population: 6,304. This is the village population."
