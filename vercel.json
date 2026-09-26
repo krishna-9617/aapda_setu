@@ -1,4 +1,5 @@
 {
-  "buildCommand": "bash vercel-build.sh",
-  "outputDirectory": "frontend/dist"
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
+  "rootDirectory": "frontend"
 }
