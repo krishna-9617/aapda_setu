@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: aapda-setu-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENTOPOGRAPHY_API_KEY
+        value: e9f9201b6ba667c3018f264e249b9a66

@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "dataset": "Barpeta district historical disaster context and critical infrastructure",
+    "version": "1.0",
+    "generated_date": "2026-09-22",
+    "sources": {
+      "historical_floods": [
+        "ASDMA (Assam State Disaster Management Authority) -- Flood Situation Reports 2022-2023. asdma.assam.gov.in",
+        "Sphere India, Assam Flood 2022 Assessment Report. sphereindia.org.in",
+        "NDTV, Assam Floods June 2023. ndtv.com",
+        "ReliefWeb, Assam Flood Situation 2022. reliefweb.int"
+      ],
+      "critical_infrastructure": "OpenStreetMap via Overpass API (queried 2026-09-22). CC BY-SA 2.0.",
+      "capacity_standard": "NDMA Guidelines on Minimum Standards of Relief (2016). Section 3: Shelter. 3.5 sq.m covered area per person."
+    },
+    "non_claims_note": "Historical figures are from secondary sources (ASDMA situation reports, news reports citing ASDMA). They are cited for contextual awareness, not as verified census counts. Infrastructure data from OSM reflects volunteer-contributed mapping and may be incomplete."
+  },
+  "historical_flood_context": {
+    "district": "Barpeta, Assam",
+    "flood_frequency": "Annual -- Barpeta experiences severe riverine flooding every monsoon season (June-September) from the Brahmaputra and its tributaries (Manas, Beki, Pahumara, Kaldia).",
+    "recent_events": [
+      {
+        "year": 2022,
+        "severity": "Exceptional",
+        "peak_affected_persons": 1270000,
+        "peak_affected_note": "Reported peak by ASDMA: over 1.27 million people marooned in Barpeta district alone during the second wave (June 2022). Source: Sphere India 2022 assessment citing ASDMA situation reports.",
+        "villages_inundated": "Multiple waves; embankment breaches reported across the district.",
+        "ndrf_sdrf_deployed": true,
+        "source": "Sphere India / ASDMA Flood Situation Reports 2022"
+      },
+      {
+        "year": 2023,
+        "severity": "Severe",
+        "peak_affected_persons": 65221,
+        "peak_affected_note": "~65,221 people affected in Barpeta by late June 2023. ~93 villages affected, 225 hectares of cropland inundated. Source: NDTV citing ASDMA June 2023.",
+        "villages_inundated": 93,
+        "cropland_inundated_ha": 225,
+        "source": "NDTV / ASDMA Flood Situation Report June 2023"
+      }
+    ],
+    "char_areas_note": "Barpeta has numerous 'char' (riverine island) settlements that are disproportionately vulnerable. These are typically unconnected by road during floods."
+  },
+  "critical_infrastructure_near_sites": {
+    "note": "All records from OSM Overpass query (bbox 26.20-26.50N, 90.80-91.10E, 2026-09-22). Only named features included. This list is illustrative, not exhaustive.",
+    "hospitals_and_clinics": [
+      {
+        "name": "Barpeta Medical College and Hospital, Barpeta",
+        "type": "hospital",
+        "lat": 26.3234,
+        "lon": 90.9884,
+        "note": "Tertiary care -- primary trauma/emergency resource for Barpeta town. 0.9 km from SHL-001.",
+        "source": "OSM"
+      },
+      {
+        "name": "NIRC Hospital",
+        "type": "hospital",
+        "lat": 26.3354,
+        "lon": 91.0020,
+        "source": "OSM"
+      },
+      {
+        "name": "Sanjivani Hospital And Rcs Ltd",
+        "type": "hospital",
+        "lat": 26.3254,
+        "lon": 90.9986,
+        "source": "OSM"
+      },
+      {
+        "name": "Manikpur Model Hospital",
+        "type": "hospital",
+        "lat": 26.4709,
+        "lon": 90.8028,
+        "source": "OSM"
+      },
+      {
+        "name": "Barpeta Road F.R.U",
+        "type": "hospital",
+        "lat": 26.4908,
+        "lon": 90.9686,
+        "note": "First Referral Unit (FRU) -- surgical and obstetric capacity.",
+        "source": "OSM"
+      }
+    ],
+    "power_substations": [
+      {"lat": 26.4931, "lon": 90.9053, "source": "OSM"},
+      {"lat": 26.4942, "lon": 90.8901, "source": "OSM"}
+    ]
+  },
+  "shelter_capacity_standard": {
+    "standard": "NDMA Guidelines on Minimum Standards of Relief (2016)",
+    "covered_area_per_person_sqm": 3.5,
+    "citation": "National Disaster Management Authority, India. Section 3 -- Shelter. Available: ndma.gov.in",
+    "applicability_note": "Applicable to all government relief camps established under the Disaster Management Act 2005. PMAY-G is a housing construction scheme, not a relief camp standard -- no PMAY-G capacity standard for shelters exists.",
+    "covid_assam_revision_sqm": 7.0,
+    "covid_revision_source": "Assam Government COVID-19 relief camp guidelines 2020. assam.gov.in"
+  }
+}
