@@ -154,7 +154,7 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
     console.log('MapView DEBUG: route', route.route_id, 'source:', route.geometry_source, 'hasRoad:', hasRoadGeometry, 'isArray:', Array.isArray(route.geometry));
     if (hasRoadGeometry) {
       const src = route.geometry_source ? route.geometry_source.toUpperCase() : '';
-      return { text: \Real road path (\)\, color: '#16a34a' };
+      return { text: `Real road path (${src})`, color: '#16a34a' };
     }
     const src = route.geometry_source || '';
     if (src === 'straight_line_estimate' || src === 'csv_fallback') {
@@ -164,7 +164,7 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
       }
       return { text: 'Straight-line estimate (DEBUG)', color: '#b45309' };
     }
-    return { text: \Straight-line (DEBUG src=\)\, color: '#b45309' };
+    return { text: `Straight-line (DEBUG src=${src})`, color: '#b45309' };
   })();
 
   return (
