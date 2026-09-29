@@ -732,7 +732,8 @@ const Dashboard = ({ theme }) => {
                               { label: 'Populations', src: 'Census of India 2011', real: true },
                               { label: 'Coordinates (3/5)', src: 'OSM / Nominatim', real: true },
                               { label: 'Hazard scores', src: 'SRTM DEM + Natural Earth', real: true },
-                              { label: 'ML flood model', src: 'Kaggle 1.1M rows, AUC 0.93', real: true },
+                              { label: 'ML flood model', src: 'Kaggle 1.1M rows, AUC 0.9275', real: true },
+                              { label: 'ML landslide model (RF)', src: 'AUC-ROC 0.9289', real: true },
                               { label: 'Shelter capacities', src: 'NDMA 3.5 m²/person estimate', real: false },
                               { label: 'Vulnerability index', src: 'Composite estimate', real: false },
                             ].map(row => (

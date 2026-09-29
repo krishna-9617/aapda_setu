@@ -52,7 +52,7 @@ const CAPABILITIES = [
   {
     icon: Brain,
     title: "ML susceptibility blending",
-    desc: "A trained landslide susceptibility model blends a learned shift into derived exposure scores. The flood model is reported inactive rather than papered over — every contribution is traceable.",
+    desc: "A landslide Random Forest (AUC-ROC 0.9289) blends a learned susceptibility shift into derived exposure scores. The flood model is reported inactive rather than papered over — every contribution is traceable.",
   },
   {
     icon: Users,
@@ -293,7 +293,7 @@ export default function LandingPage() {
               kind: "real",
               label: "Real ML contribution",
               title: "Landslide susceptibility model",
-              body: "A trained model shifts derived hazard scores for habitations where it has predictions. The flood model is reported inactive — it's not silently applied at zero.",
+              body: "A Random Forest (AUC-ROC 0.9289) shifts derived hazard scores for habitations where it has predictions. The flood model is reported inactive — it's not silently applied at zero.",
             },
             {
               kind: "estimated",

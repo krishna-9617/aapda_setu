@@ -402,21 +402,56 @@ def apply_intervention(req: InterventionRequest):
         sid = req.site_id
         rid = f"R_EMERG_{hid}_{sid}"
         
-        # Calculate approximate distance (Euclidean * 100 for dummy km)
+        from geo.providers import try_osrm
+        
+        # Calculate approximate distance (Euclidean * 100 for dummy km) as fallback
         lat1, lon1 = temp_habitations[hid]["lat"], temp_habitations[hid]["lon"]
         lat2, lon2 = temp_sites[sid]["lat"], temp_sites[sid]["lon"]
-        dist = ((lat1-lat2)**2 + (lon1-lon2)**2)**0.5 * 111.0 # rough km
         
-        temp_routes[rid] = {
-            "route_id": rid,
-            "from_habitation_id": hid,
-            "to_site_id": sid,
-            "distance_km": round(dist, 1),
-            "travel_time_min": round(dist * 5, 1), # Assume ~12 km/h avg
-            "risk_score": 0.2,
-            "status": "open",
-            "capacity_per_hour": 500
-        }
+        osrm_result = try_osrm(lat1, lon1, lat2, lon2, delay=False)
+        
+        if osrm_result:
+            temp_routes[rid] = {
+                "route_id": rid,
+                "from_habitation_id": hid,
+                "to_site_id": sid,
+                "distance_km": osrm_result["distance_km"],
+                "travel_time_min": osrm_result["travel_time_min"],
+                "risk_score": 0.2,
+                "status": "open",
+                "capacity_per_hour": 500,
+                "geometry_source": osrm_result["source"],
+                "geometry": osrm_result["geometry"],
+                "geometry_note": "Emergency route: geometry fetched via OSRM at runtime.",
+                "is_primary_road_path": False,
+                "csv_reference": {
+                    "distance_km": osrm_result["distance_km"],
+                    "travel_time_min": osrm_result["travel_time_min"],
+                },
+            }
+        else:
+            dist = ((lat1-lat2)**2 + (lon1-lon2)**2)**0.5 * 111.0 # rough km
+            temp_routes[rid] = {
+                "route_id": rid,
+                "from_habitation_id": hid,
+                "to_site_id": sid,
+                "distance_km": round(dist, 1),
+                "travel_time_min": round(dist * 5, 1),  # ~12 km/h walking estimate
+                "risk_score": 0.2,
+                "status": "open",
+                "capacity_per_hour": 500,
+                "geometry_source": "straight_line_estimate",
+                "geometry": [[lat1, lon1], [lat2, lon2]],
+                "geometry_note": (
+                    "Emergency route: straight-line estimate. "
+                    "OSRM real road geometry failed at runtime."
+                ),
+                "is_primary_road_path": False,
+                "csv_reference": {
+                    "distance_km": round(dist, 1),
+                    "travel_time_min": round(dist * 5, 1),
+                },
+            }
         
         hab_name = temp_habitations[hid]["name"]
         site_name = temp_sites[sid]["name"]

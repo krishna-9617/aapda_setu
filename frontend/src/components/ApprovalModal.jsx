@@ -55,7 +55,7 @@ const ApprovalModal = ({ pendingPlanData, onApprove, onReject }) => {
                   This event triggers a re-optimization affecting <strong>{pendingPlanData.changed_assignments} habitations</strong>.
                 </div>
 
-                {pendingPlanData.changes && pendingPlanData.changes.length > 0 && (
+                {pendingPlanData.changes && pendingPlanData.changes.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
                     {Object.entries(
                       pendingPlanData.changes.reduce((acc, curr) => {
@@ -90,6 +90,10 @@ const ApprovalModal = ({ pendingPlanData, onApprove, onReject }) => {
                         </div>
                       );
                     })}
+                  </div>
+                ) : (
+                  <div style={{ padding: '12px', backgroundColor: 'var(--inner-bg)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '13px', color: 'var(--text-dim)' }}>
+                    No assignments needed to change (the affected route/site was unused or the system easily adapted).
                   </div>
                 )}
                 

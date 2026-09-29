@@ -151,7 +151,9 @@ def _stability_module(habitations):
 
 def _ml_module(habitations):
     """
-    Report how many habitations actually received an ML susceptibility shift.
+    Report how many habitations actually received an ML susceptibility shift,
+    and surface the landslide Random Forest AUC-ROC so it is visible on the
+    module grid without needing to drill into a specific habitation card.
 
     This deliberately counts real contributions rather than reporting the
     models as "loaded". A model that loads but throws on every prediction is
@@ -167,7 +169,19 @@ def _ml_module(habitations):
 
     if flood == 0 and landslide == 0:
         return None, "No ML contribution applied"
-    return f"{flood}F / {landslide}L", f"of {total} habitations received an ML shift"
+
+    # Pull the AUC reported by the first habitation that has an LS contribution
+    # (all habitations use the same model so any one is representative).
+    ls_auc = next(
+        (
+            h["ml_contribution_landslide"].get("auc")
+            for h in habitations.values()
+            if h.get("ml_contribution_landslide")
+        ),
+        None,
+    )
+    auc_str = f" · Landslide RF AUC-ROC {ls_auc:.4f}" if ls_auc is not None else ""
+    return f"{flood}F / {landslide}L", f"of {total} habitations received an ML shift{auc_str}"
 
 
 def build_modules(*, habitations, sites, routes, current_plan, pending_plan,

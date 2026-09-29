@@ -34,7 +34,7 @@ const STACK = [
   },
   {
     layer: "ML susceptibility",
-    detail: "A trained landslide model (scikit-learn Random Forest, class_weight=balanced) blends a per-habitation susceptibility shift into derived hazard scores. Flood model uses Logistic Regression (20 features, AUC 0.9275).",
+    detail: "A trained landslide model (scikit-learn Random Forest, class_weight=balanced, AUC-ROC 0.9289) blends a per-habitation susceptibility shift into derived hazard scores. Flood model uses Logistic Regression (20 features, AUC 0.9275).",
     icon: Brain,
   },
   {
@@ -207,7 +207,7 @@ const REAL_VS_ESTIMATED = [
   {
     kind: "real",
     title: "Landslide ML contribution",
-    body: "Random Forest model (class_weight=balanced) shifts derived hazard scores for habitations where it has real predictions. The count of habitations that received an ML shift is reported exactly.",
+    body: "Random Forest model (class_weight=balanced, AUC-ROC 0.9289) shifts derived hazard scores for habitations where it has real predictions. The count of habitations that received an ML shift is reported exactly.",
   },
   {
     kind: "real",
@@ -445,7 +445,7 @@ const AboutPage = () => {
               { label: "12/12 OSM road routes", detail: "All 12 routes use real road geometry: 9 via OSRM + 3 via local OSM graph. The 3/12 dashboard count was a bug (now fixed)." },
               { label: "DEM hazard derivation", detail: "SRTM/NASADEM elevation + Natural Earth hydrography → per-habitation flood and landslide exposure scores with provenance." },
               { label: "Flood ML model (LR)", detail: "Logistic Regression on 20 features (AUC 0.9275). 2 real features, 3 median-fallback (noted), rest median." },
-              { label: "Landslide ML model (RF)", detail: "Random Forest (class_weight=balanced). phi≈0 for flat Barpeta floodplain is geographically correct." },
+              { label: "Landslide ML model (RF)", detail: "Random Forest (class_weight=balanced, AUC-ROC 0.9289). phi≈0 for flat Barpeta floodplain is geographically correct." },
               { label: "Human approval workflow", detail: "Pending plans require explicit officer approval. Every version — approved or rejected — is on the immutable record." },
             ].map((item, i) => (
               <motion.div

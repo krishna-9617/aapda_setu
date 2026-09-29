@@ -98,15 +98,25 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
     Array.isArray(route.geometry) &&
     route.geometry.length >= 2;
 
+  // For straight-line/emergency routes that carry a 2-point geometry array,
+  // use it directly so the polyline is always drawn from real coordinates.
+  const hasFallbackGeometry =
+    !hasRoadGeometry &&
+    route &&
+    Array.isArray(route.geometry) &&
+    route.geometry.length >= 2;
+
   const positions = hasRoadGeometry
     ? [
         [hab.lat, hab.lon],
         ...route.geometry,
-        [site.lat, site.lon]
+        [site.lat, site.lon],
       ]
+    : hasFallbackGeometry
+    ? route.geometry
     : [
         [hab.lat, hab.lon],
-        [site.lat, site.lon]
+        [site.lat, site.lon],
       ];
 
   const midpoint = positions[Math.floor(positions.length / 2)];
@@ -135,6 +145,24 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
         lineCap: 'round',
       };
 
+  // Human-readable geometry provenance label for the tooltip.
+  const geometryLabel = (() => {
+    if (!route) return null;
+    if (hasRoadGeometry) {
+      const src = route.geometry_source ? route.geometry_source.toUpperCase() : '';
+      return { text: `Real road path (${src})`, color: '#16a34a' };
+    }
+    const src = route.geometry_source || '';
+    if (src === 'straight_line_estimate') {
+      const note = route.geometry_note || '';
+      if (note.toLowerCase().includes('emergency')) {
+        return { text: 'Emergency route · straight-line estimate', color: '#f59e0b' };
+      }
+      return { text: 'Straight-line estimate · road geometry not derived', color: '#b45309' };
+    }
+    return { text: 'Straight-line estimate', color: '#b45309' };
+  })();
+
   return (
     <>
       <Polyline
@@ -152,11 +180,11 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
                 {route.distance_km} km &middot; {route.travel_time_min} mins travel time
               </div>
             )}
-            <div style={{ fontSize: '10px', color: hasRoadGeometry ? '#16a34a' : '#b45309', marginTop: '3px' }}>
-              {hasRoadGeometry
-                ? `Real road path (${route.geometry_source.toUpperCase()})`
-                : 'Straight-line estimate - road network not derived'}
-            </div>
+            {geometryLabel && (
+              <div style={{ fontSize: '10px', color: geometryLabel.color, marginTop: '3px' }}>
+                {geometryLabel.text}
+              </div>
+            )}
           </div>
         </Tooltip>
       </Polyline>

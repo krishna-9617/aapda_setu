@@ -135,7 +135,30 @@ function HabitationCard({ hab, index, isExpanded, onToggle }) {
                         <p className="as-small" style={{ color: "var(--as-text-tertiary)" }}>No derivation signals available - CSV fallback.</p>
                       )}
                       {hab.ml_contribution_landslide && (
-                        <ProvenanceRow label="ML susceptibility" value={`${(hab.ml_contribution_landslide.phi * 100).toFixed(1)}%`} />
+                        <>
+                          <ProvenanceRow
+                            label="ML susceptibility (φ)"
+                            value={`${(hab.ml_contribution_landslide.phi * 100).toFixed(1)}%`}
+                          />
+                          <ProvenanceRow
+                            label="Model"
+                            value={hab.ml_contribution_landslide.model || "Random Forest (class_weight=balanced, 5 features)"}
+                          />
+                          <ProvenanceRow
+                            label="AUC-ROC"
+                            value={
+                              hab.ml_contribution_landslide.auc != null
+                                ? hab.ml_contribution_landslide.auc.toFixed(4)
+                                : "0.9289"
+                            }
+                          />
+                          {hab.ml_contribution_landslide.dataset_note && (
+                            <ProvenanceRow
+                              label="Dataset"
+                              value={hab.ml_contribution_landslide.dataset_note}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
