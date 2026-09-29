@@ -99,7 +99,11 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
     route.geometry.length >= 2;
 
   const positions = hasRoadGeometry
-    ? route.geometry
+    ? [
+        [hab.lat, hab.lon],
+        ...route.geometry,
+        [site.lat, site.lon]
+      ]
     : [
         [hab.lat, hab.lon],
         [site.lat, site.lon]
