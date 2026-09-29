@@ -53,30 +53,35 @@ def calculate_plan_health(current_plan, habitations, sites, routes):
             site = sites[sid]
             eff_cap = site["effective_capacity"]
             if eff_cap > 0 and usage >= eff_cap:
-                # This site is full. What is the limiting resource?
+                # This site is full. What is the limiting resource(s)?
                 resources = {key: site[key] for key in _RESOURCE_KEYS}
-                limiting_resource = min(resources, key=resources.get)
+                min_val = min(resources.values())
+                limiting_resources = [k for k, v in resources.items() if v == min_val]
 
-                # Effective capacity is the MIN of these six resources, so raising the limiting one only helps
-                # until it reaches the next-lowest resource. If two resources tie for lowest, raising just one
-                # gains nothing at all - so it is not offered (it would claim an impact it cannot deliver).
-                ordered = sorted(resources.values())
-                headroom = ordered[1] - ordered[0]
-                if headroom <= 0:
-                    continue
-
-                increase_amount = min(unmet_total, CAPACITY_CHUNK, headroom)
-                candidates.append({
-                    "id": f"cap_{sid}_{limiting_resource}",
-                    "type": "increase_capacity",
-                    "site_id": sid,
-                    "resource_type": limiting_resource,
-                    "amount": increase_amount,
-                    "estimated_impact": increase_amount,
-                    "title": f"Increase {limiting_resource.replace('capacity_', '')} at {site['name']}",
-                    "description": f"Increase {limiting_resource.replace('capacity_', '')} by {increase_amount} units to accommodate more people.",
-                    "impact": f"May resolve up to {increase_amount} unmet demand."
-                })
+                unique_ordered = sorted(set(resources.values()))
+                headroom = unique_ordered[1] - unique_ordered[0] if len(unique_ordered) > 1 else CAPACITY_CHUNK
+                
+                # If multiple resources are tied for lowest, upgrading just one won't immediately increase 
+                # effective capacity. But we must still suggest them so the user can unblock the site!
+                for res_type in limiting_resources:
+                    increase_amount = min(unmet_total, CAPACITY_CHUNK, headroom)
+                    is_tied = len(limiting_resources) > 1
+                    
+                    impact_text = f"May resolve up to {increase_amount} unmet demand."
+                    if is_tied:
+                        impact_text = f"Required step to unblock capacity (tied with {len(limiting_resources)-1} other resources)."
+                        
+                    candidates.append({
+                        "id": f"cap_{sid}_{res_type}",
+                        "type": "increase_capacity",
+                        "site_id": sid,
+                        "resource_type": res_type,
+                        "amount": increase_amount,
+                        "estimated_impact": increase_amount if not is_tied else 0,
+                        "title": f"Increase {res_type.replace('capacity_', '')} at {site['name']}",
+                        "description": f"Increase {res_type.replace('capacity_', '')} by {increase_amount} units to help accommodate more people.",
+                        "impact": impact_text
+                    })
 
         # Find spare capacity  (unchanged from the original logic)
         spare_caps = []
