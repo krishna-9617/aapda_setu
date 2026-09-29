@@ -147,20 +147,24 @@ function AssignmentRoute({ assignment: a, hab, site, route, isFocused, isOvervie
 
   // Human-readable geometry provenance label for the tooltip.
   const geometryLabel = (() => {
-    if (!route) return null;
+    if (!route) {
+      console.log('MapView DEBUG: route is undefined for assignment:', a);
+      return null;
+    }
+    console.log('MapView DEBUG: route', route.route_id, 'source:', route.geometry_source, 'hasRoad:', hasRoadGeometry, 'isArray:', Array.isArray(route.geometry));
     if (hasRoadGeometry) {
       const src = route.geometry_source ? route.geometry_source.toUpperCase() : '';
-      return { text: `Real road path (${src})`, color: '#16a34a' };
+      return { text: \Real road path (\)\, color: '#16a34a' };
     }
     const src = route.geometry_source || '';
-    if (src === 'straight_line_estimate') {
+    if (src === 'straight_line_estimate' || src === 'csv_fallback') {
       const note = route.geometry_note || '';
       if (note.toLowerCase().includes('emergency')) {
-        return { text: 'Emergency route · straight-line estimate', color: '#f59e0b' };
+        return { text: 'Emergency route (DEBUG)', color: '#f59e0b' };
       }
-      return { text: 'Straight-line estimate · road geometry not derived', color: '#b45309' };
+      return { text: 'Straight-line estimate (DEBUG)', color: '#b45309' };
     }
-    return { text: 'Straight-line estimate', color: '#b45309' };
+    return { text: \Straight-line (DEBUG src=\)\, color: '#b45309' };
   })();
 
   return (
