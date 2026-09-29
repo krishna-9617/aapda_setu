@@ -130,10 +130,8 @@ def try_ors(habitation_lat, habitation_lon, site_lat, site_lon):
 
 def try_osrm(habitation_lat, habitation_lon, site_lat, site_lon, delay=True):
     """
-    Try to route via the OSRM public demo server.
-
-    Returns a route entry dict (source='osrm') on success, None on any failure.
-    Uses GeoJSON geometry so no polyline decoding is needed.
+    Try to route via OSRM public servers.
+    Attempts primary server first, then a fallback server if blocked (e.g. on Render).
     """
     if delay:
         time.sleep(OSRM_INTER_REQUEST_DELAY_SEC)
@@ -144,15 +142,26 @@ def try_osrm(habitation_lat, habitation_lon, site_lat, site_lon, delay=True):
         "geometries": "geojson",
         "steps": "false",
     })
-    url = f"{OSRM_BASE}/{coords}?{params}"
 
-    try:
-        data = _get(url)
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        logger.warning("OSRM request failed: %s", exc)
-        return None
-    except Exception as exc:
-        logger.warning("OSRM unexpected error: %s: %s", type(exc).__name__, exc)
+    servers = [
+        OSRM_BASE,
+        "https://routing.openstreetmap.de/routed-car/route/v1/driving"
+    ]
+
+    data = None
+    for server_base in servers:
+        url = f"{server_base}/{coords}?{params}"
+        try:
+            data = _get(url)
+            break
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            logger.warning("OSRM request failed for %s: %s", server_base, exc)
+            continue
+        except Exception as exc:
+            logger.warning("OSRM unexpected error on %s: %s", server_base, exc)
+            continue
+
+    if not data:
         return None
 
     try:
