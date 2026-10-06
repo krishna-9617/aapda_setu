@@ -88,11 +88,13 @@ const SolverStatusBadge = ({ plan }) => {
                   exit={{ opacity: 0, y: 5 }}
                   transition={{ duration: 0.15 }}
                   style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', right: '-4px', width: '380px',
+                    position: 'absolute', top: 'calc(100% + 8px)', right: '-4px',
+                    width: 'min(380px, calc(100vw - 32px))',
+                    maxWidth: '380px',
                     backgroundColor: 'var(--bg)', backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
                     border: '1px solid var(--panel-border)', borderRadius: '8px', padding: '16px',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.4)', zIndex: 3000,
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.4)', zIndex: 10001,
                     color: 'var(--text-strong)', fontSize: '12px', lineHeight: 1.5, textTransform: 'none',
                     fontWeight: 500
                   }}

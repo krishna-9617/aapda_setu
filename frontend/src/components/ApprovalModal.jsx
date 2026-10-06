@@ -10,7 +10,7 @@ const ApprovalModal = ({ pendingPlanData, onApprove, onReject }) => {
                 transition={{ duration: 0.4, type: 'spring' }}
                 className="approval-modal"
                 style={{
-                  position: 'absolute',
+                  position: 'fixed',
                   top: '80px',
                   left: '50%',
                   transform: 'translateX(-50%)',
@@ -20,15 +20,18 @@ const ApprovalModal = ({ pendingPlanData, onApprove, onReject }) => {
                   border: '1px solid var(--panel-border)',
                   boxShadow: '0 12px 40px var(--shadow)',
                   borderRadius: '16px',
-                  padding: '24px',
+                  padding: '20px',
                   zIndex: 2000,
                   pointerEvents: 'auto',
                   fontFamily: 'Inter, sans-serif',
                   color: 'var(--text-light)',
-                  width: '420px',
+                  width: 'calc(100vw - 32px)',
+                  maxWidth: '420px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '16px'
+                  gap: '16px',
+                  maxHeight: 'calc(100vh - 100px)',
+                  overflowY: 'auto',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--panel-border)', paddingBottom: '12px' }}>

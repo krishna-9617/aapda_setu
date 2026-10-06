@@ -22,6 +22,7 @@ const PostApprovalSummary = ({ summary, onClose, position = 'absolute', maxWidth
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: -50, opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.4, type: 'spring' }}
+        className="post-approval-summary"
         style={{
           position,
           top: '100px',
@@ -33,13 +34,14 @@ const PostApprovalSummary = ({ summary, onClose, position = 'absolute', maxWidth
           border: '1px solid var(--panel-border)',
           boxShadow: '0 12px 40px var(--shadow)',
           borderRadius: '16px',
-          padding: '16px 24px',
-          zIndex: 2000,
+          padding: '16px 20px',
+          zIndex: 10000,
           pointerEvents: 'auto',
           fontFamily: 'Inter, sans-serif',
           color: 'var(--text-light)',
-          minWidth: '320px',
-          maxWidth,
+          minWidth: 'min(320px, calc(100vw - 32px))',
+          maxWidth: maxWidth ? `min(${maxWidth}, calc(100vw - 32px))` : 'calc(100vw - 32px)',
+          width: 'calc(100vw - 32px)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'

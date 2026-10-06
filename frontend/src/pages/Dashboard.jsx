@@ -591,7 +591,7 @@ const Dashboard = ({ theme }) => {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               style={{ pointerEvents: 'auto', height: 'calc(100% - 100px)', zIndex: 10, marginLeft: 48, marginTop: 100 }}
             >
-              <TiltCard className="sidebar-container" style={{ width: '380px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <TiltCard className="sidebar-container" style={{ width: 'min(380px, calc(100vw - 80px))', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* Tab bar */}
                 <div style={{ display: 'flex', padding: '12px 16px 0 16px', gap: '4px', flexShrink: 0 }} role="tablist" aria-label="Sidebar section">
@@ -791,7 +791,7 @@ const Dashboard = ({ theme }) => {
               it inside a flex row would just break its layout rather than
               genuinely combine the two. */}
           <div
-            className="solver-badge"
+            className="solver-badge kpi-strip"
             style={{
               position: 'absolute', top: 100, left: 20, zIndex: 15, pointerEvents: 'auto',
               display: 'flex', alignItems: 'center',
@@ -808,7 +808,7 @@ const Dashboard = ({ theme }) => {
             <KpiStat icon={Gauge} label="Objective" value={objectiveValue} decimalPlaces={1} tint="#38bdf8" />
           </div>
 
-          <div className="solver-badge" style={{ position: 'absolute', top: 100, right: 16, pointerEvents: 'auto' }}>
+          <div className="solver-badge solver-badge-tr" style={{ position: 'absolute', top: 100, right: 16, pointerEvents: 'auto' }}>
             <SolverStatusBadge plan={currentPlan} />
           </div>
 
@@ -825,7 +825,7 @@ const Dashboard = ({ theme }) => {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               style={{ pointerEvents: 'auto', height: 'calc(100% - 100px)', marginTop: 100 }}
             >
-              <TiltCard className="explainability-panel" style={{ width: '340px', height: '100%', overflow: 'hidden' }}>
+              <TiltCard className="explainability-panel" style={{ width: 'min(340px, calc(100vw - 32px))', height: '100%', overflow: 'hidden' }}>
                 <ExplainabilityPanelContent
                   habitationId={selectedHab}
                   habitations={habitations}

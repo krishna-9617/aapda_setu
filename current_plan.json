@@ -1,0 +1,144 @@
+{
+  "plan_id": "9fab9441-e1a6-452e-8eee-f8f49626411b",
+  "status": "approved",
+  "trigger_event": "What-If scenario implemented",
+  "solver_status": "OPTIMAL",
+  "solver_time_sec": 0.0035248590000000004,
+  "solver_gap_percent": 0,
+  "objective": 2071208.5,
+  "assignments": [
+    {
+      "habitation_id": "BRP-001",
+      "site_id": "SHL-001",
+      "route_id": "R01",
+      "people_count": 880,
+      "buses_required": 18,
+      "boats_required": 12
+    },
+    {
+      "habitation_id": "BRP-001",
+      "site_id": "SHL-002",
+      "route_id": "R02",
+      "people_count": 170,
+      "buses_required": 4,
+      "boats_required": 3
+    },
+    {
+      "habitation_id": "BRP-002",
+      "site_id": "SHL-001",
+      "route_id": "R03",
+      "people_count": 1520,
+      "buses_required": 19,
+      "boats_required": 51
+    },
+    {
+      "habitation_id": "BRP-003",
+      "site_id": "SHL-002",
+      "route_id": "R04",
+      "people_count": 1496,
+      "buses_required": 34,
+      "boats_required": 10
+    },
+    {
+      "habitation_id": "BRP-003",
+      "site_id": "SHL-005",
+      "route_id": "R05",
+      "people_count": 1127,
+      "buses_required": 26,
+      "boats_required": 8
+    },
+    {
+      "habitation_id": "BRP-005",
+      "site_id": "SHL-005",
+      "route_id": "R08",
+      "people_count": 2206,
+      "buses_required": 39,
+      "boats_required": 45
+    }
+  ],
+  "unmet_demand": {
+    "BRP-004": 2327,
+    "BRP-005": 9771
+  },
+  "changes": [
+    {
+      "type": "REMOVED",
+      "habitation_id": "BRP-001",
+      "site_id": "SHL-002",
+      "route_id": "R02",
+      "people_count": 115
+    },
+    {
+      "type": "ADDED",
+      "habitation_id": "BRP-001",
+      "site_id": "SHL-001",
+      "route_id": "R01",
+      "people_count": 612
+    },
+    {
+      "type": "ADDED",
+      "habitation_id": "BRP-002",
+      "site_id": "SHL-001",
+      "route_id": "R03",
+      "people_count": 720
+    },
+    {
+      "type": "ADDED",
+      "habitation_id": "BRP-003",
+      "site_id": "SHL-002",
+      "route_id": "R04",
+      "people_count": 115
+    },
+    {
+      "type": "ADDED",
+      "habitation_id": "BRP-003",
+      "site_id": "SHL-005",
+      "route_id": "R05",
+      "people_count": 1127
+    },
+    {
+      "type": "REMOVED",
+      "habitation_id": "BRP-004",
+      "site_id": "SHL-001",
+      "route_id": "R_EMERG_BRP-004_SHL-001",
+      "people_count": 1225
+    },
+    {
+      "type": "REMOVED",
+      "habitation_id": "BRP-005",
+      "site_id": "SHL-005",
+      "route_id": "R08",
+      "people_count": 1127
+    }
+  ],
+  "filtering_reasons": {
+    "BRP-001": [
+      "SHL-003 (Tarun Ram Phookan High School) excluded: Stage 1 - inside hazard zone (score 0.8)",
+      "SHL-004 (Barpeta Girls High School) excluded: Stage 2 - poor elevation/drainage (terrain_safe=False in CSV; WorldCover not cached)",
+      "SHL-005 (J.R.P. Female Seminary) excluded: Stage 4 - no open route from Ambari"
+    ],
+    "BRP-002": [
+      "SHL-002 (Madhab Choudhury College) excluded: Stage 4 - no open route from Howly",
+      "SHL-003 (Tarun Ram Phookan High School) excluded: Stage 1 - inside hazard zone (score 0.8)",
+      "SHL-004 (Barpeta Girls High School) excluded: Stage 2 - poor elevation/drainage (terrain_safe=False in CSV; WorldCover not cached)",
+      "SHL-005 (J.R.P. Female Seminary) excluded: Stage 4 - no open route from Howly"
+    ],
+    "BRP-003": [
+      "SHL-001 (Barpeta Vidyapith) excluded: Stage 4 - no open route from Fulkipara",
+      "SHL-003 (Tarun Ram Phookan High School) excluded: Stage 1 - inside hazard zone (score 0.8)",
+      "SHL-004 (Barpeta Girls High School) excluded: Stage 2 - poor elevation/drainage (terrain_safe=False in CSV; WorldCover not cached)"
+    ],
+    "BRP-004": [
+      "SHL-002 (Madhab Choudhury College) excluded: Stage 4 - no open route from Baghbar",
+      "SHL-003 (Tarun Ram Phookan High School) excluded: Stage 1 - inside hazard zone (score 0.8)",
+      "SHL-004 (Barpeta Girls High School) excluded: Stage 2 - poor elevation/drainage (terrain_safe=False in CSV; WorldCover not cached)"
+    ],
+    "BRP-005": [
+      "SHL-001 (Barpeta Vidyapith) excluded: Stage 4 - no open route from Kalgachia",
+      "SHL-002 (Madhab Choudhury College) excluded: Stage 4 - no open route from Kalgachia",
+      "SHL-003 (Tarun Ram Phookan High School) excluded: Stage 1 - inside hazard zone (score 0.8)",
+      "SHL-004 (Barpeta Girls High School) excluded: Stage 2 - poor elevation/drainage (terrain_safe=False in CSV; WorldCover not cached)"
+    ]
+  },
+  "invalidation_reason": "What-If Scenario applied"
+}

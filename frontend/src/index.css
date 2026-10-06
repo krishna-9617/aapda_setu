@@ -506,3 +506,89 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed !important;
 }
+
+/* ==========================================================================
+   Responsive Breakpoint Overrides
+   Standard breakpoints:
+     mobile       ≤480px
+     small tablet  481-768px
+     tablet/laptop 769-1024px
+     desktop       1025px+
+   ========================================================================== */
+
+/* ── Dashboard: hide the KPI strip on very narrow screens so it doesn't
+      overlap behind the sidebar panel. The SolverBadge (top-right) is also
+      hidden on ≤480px — the map itself is the primary value on a phone. ── */
+@media (max-width: 480px) {
+  .kpi-strip {
+    display: none !important;
+  }
+  .solver-badge-tr {
+    display: none !important;
+  }
+}
+
+/* ── Dashboard: on small tablets (481–768px) let the KPI strip show but
+      only when the sidebar is collapsed (handled by JS state). Hide the
+      top-right SolverBadge to prevent overlap. ── */
+@media (max-width: 768px) {
+  .solver-badge-tr {
+    display: none !important;
+  }
+}
+
+/* ── ApprovalModal: ensure it always sits above the fixed navbar (z:9999).
+      The modal uses position:fixed so this just bumps its stacking context. ── */
+.approval-modal {
+  z-index: 10000 !important;
+}
+
+/* ── PostApprovalSummary: its maxWidth prop can be 460px which overflows
+      on 375px. Clamp it to the viewport. ── */
+.post-approval-summary {
+  max-width: min(460px, calc(100vw - 32px)) !important;
+  width: calc(100vw - 32px) !important;
+}
+
+/* ── Navbar dropdown: prevent it from clipping off the right edge on
+      small tablets where the rightmost dropdown button is close to the edge. ── */
+@media (max-width: 900px) {
+  /* Override the JS inline transform on the dropdown to anchor right instead
+     of centering, so it never bleeds past the viewport edge. */
+  nav [style*="translateX(-50%)"] {
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+}
+
+/* ── Mobile map height: make the stacked map panel use viewport-relative
+      height instead of a fixed 350px, so it fills more of the screen on
+      larger phones and tablets while still having a minimum. ── */
+@media (max-width: 1023px) {
+  .mobile-map-panel {
+    height: clamp(280px, 40vh, 420px) !important;
+  }
+}
+
+/* ── Touch targets: ensure all interactive buttons meet the 44px minimum
+      for comfortable tapping on touch screens. ── */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Exception: icon-only pill buttons in the navbar that already use
+     specific sizes — don't force them to 44px and break the design. */
+  .as-chip, .as-dot {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+/* ── Prevent horizontal overflow on any page. Any element that is wider
+      than the viewport gets clipped rather than causing sideways scroll. ── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

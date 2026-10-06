@@ -805,10 +805,9 @@ const WhatIfPage = ({ theme }) => {
         </motion.div>
       </div>
 
-      {/* Mobile stacked */}
       <div className="lg:hidden flex flex-col">
         <div className="overflow-y-auto p-6">{controlsContent}</div>
-        <div className="h-[350px]" style={{ borderTop: '1px solid var(--as-hairline)' }}>
+        <div className="mobile-map-panel h-[350px]" style={{ borderTop: '1px solid var(--as-hairline)' }}>
           <MapView habitations={mapHabitations} sites={sites} currentPlan={mapPlan}
             routesData={routesData} selectedHab={null} onHabClick={() => {}} theme={theme || 'dark'} />
         </div>

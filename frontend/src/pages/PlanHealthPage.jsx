@@ -281,7 +281,7 @@ const PlanHealthPage = ({ theme }) => {
             </div>
           ))}
         </div>
-        <div className="h-[350px] border-t border-white/10">
+        <div className="mobile-map-panel h-[350px] border-t border-white/10">
           <MapView habitations={habitations} sites={sites} currentPlan={currentPlan} routesData={routesData} selectedHab={null} onHabClick={() => {}} theme={theme || 'dark'} />
         </div>
       </div>
