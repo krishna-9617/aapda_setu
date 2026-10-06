@@ -67,6 +67,36 @@ function ClickToClearFocus({ onClear }) {
   return null;
 }
 
+/** Invisible helper that invalidates map size on window resize/orientation change. */
+function MapResizer() {
+  const map = useMapEvents({});
+  React.useEffect(() => {
+    // Standard window resize
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    // Also observe the map container for any layout shifts (e.g. sidebar opening)
+    const container = map.getContainer();
+    let observer;
+    if (window.ResizeObserver) {
+      observer = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      observer.observe(container);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      if (observer) observer.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 /**
  * One habitation-to-site route: the line plus its focused-only chip.
  *
@@ -365,6 +395,7 @@ const MapView = ({ habitations, sites, currentPlan, routesData, selectedHab, onH
         />
 
         <ClickToClearFocus onClear={clearFocus} />
+        <MapResizer />
 
         {/* Sites */}
         {Object.values(sites).map(site => (
